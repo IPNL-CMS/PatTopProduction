@@ -54,6 +54,62 @@ process.patDefaultSequencePFlow.replace(getattr(process, 'patMETs' + postfix),
   getattr(process, 'patMETs' + postfix) * getattr(process, 'patMETsType0p1' + postfix)
 )
 
+# Clone our METs, and apply x/y shift correction (phi modulation)
+process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
+process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
+
+# use for 2012 Data
+#process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_data
+
+# use for Spring'12 MC
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_mc
+
+# CLone our Type 0 + Type I MET, and add Phi corrections
+setattr(process, 'patType0p1ShiftCorrCorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
+    srcType1Corrections = cms.VInputTag(
+      cms.InputTag("patPFJetMETtype1p2Corr" + postfix, "type1"),
+      cms.InputTag("patPFMETtype0Corr" + postfix),
+      cms.InputTag('pfMEtSysShiftCorr')
+    )
+  )
+)
+
+setattr(process, 'patMETsType0p1ShiftCorr' + postfix, getattr(process, 'patMETs' + postfix).clone(
+    metSource = cms.InputTag("patType0p1ShiftCorrCorrectedPFMet" + postfix)
+    )
+)
+
+process.producePatPFMETCorrectionsPFlow.replace(getattr(process, 'patType1CorrectedPFMet' + postfix),
+  getattr(process, 'patType1CorrectedPFMet' + postfix) * getattr(process, 'patType0p1ShiftCorrCorrectedPFMet' + postfix))
+
+process.patDefaultSequencePFlow.replace(getattr(process, 'patMETs' + postfix),
+  getattr(process, 'patMETs' + postfix) * getattr(process, 'patMETsType0p1ShiftCorr' + postfix)
+)
+
+# Clone our Type I MET, and add Phi corrections
+setattr(process, 'patType1ShiftCorrCorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
+    srcType1Corrections = cms.VInputTag(
+      cms.InputTag("patPFJetMETtype1p2Corr" + postfix, "type1"),
+      cms.InputTag('pfMEtSysShiftCorr')
+    )
+  )
+)
+
+setattr(process, 'patMETsShiftCorr' + postfix, getattr(process, 'patMETs' + postfix).clone(
+    metSource = cms.InputTag("patType1ShiftCorrCorrectedPFMet" + postfix)
+    )
+)
+
+process.producePatPFMETCorrectionsPFlow.replace(getattr(process, 'patType1CorrectedPFMet' + postfix),
+  getattr(process, 'patType1CorrectedPFMet' + postfix) * getattr(process, 'patType1ShiftCorrCorrectedPFMet' + postfix))
+
+process.patDefaultSequencePFlow.replace(getattr(process, 'patMETs' + postfix),
+  getattr(process, 'patMETs' + postfix) * getattr(process, 'patMETsShiftCorr' + postfix)
+)
+
+process.patDefaultSequencePFlow.replace(getattr(process, 'producePatPFMETCorrections' + postfix),
+    process.pfMEtSysShiftCorrSequence * getattr(process, 'producePatPFMETCorrections' + postfix))
+
 # Enable CHS
 process.pfPileUpPFlow.Enable = True
 process.pfPileUpPFlow.checkClosestZVertex = cms.bool(False)
@@ -102,25 +158,6 @@ process.patConversionsLoose = cms.EDProducer("PATConversionProducer",
     # this should be your last selected electron collection name since currently index is used to match with electron later. We can fix this using reference pointer.
 )
 
-# Clone selectedPatMuonsPFlow / selectedPatElectronsPFlow, and use in input pfMuonsPFlow / pfElectronsPFlow
-
-process.patMuonsLoosePFlow = process.patMuonsPFlow.clone(
-  pfMuonSource = cms.InputTag("pfMuonsPFlow")
-)
-process.selectedPatMuonsLoosePFlow = process.selectedPatMuonsPFlow.clone(
-  src = cms.InputTag("patMuonsLoosePFlow")
-)
-process.patDefaultSequencePFlow += (process.patMuonsLoosePFlow * process.selectedPatMuonsLoosePFlow)
-
-process.patElectronsLoosePFlow = process.patElectronsPFlow.clone(
-  pfElectronSource = cms.InputTag("pfElectronsPFlow")
-)
-process.selectedPatElectronsLoosePFlow = process.selectedPatElectronsPFlow.clone(
-  src = cms.InputTag("patElectronsLoosePFlow")
-)
-adaptPFIsoElectrons(process, process.patElectronsLoosePFlow, postfix, "03")
-process.patDefaultSequencePFlow += (process.patElectronsLoosePFlow * process.selectedPatElectronsLoosePFlow)
-
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True 
 getattr(process,"pfNoMuon"+postfix).enable = True 
@@ -150,11 +187,34 @@ process.pfIsolatedElectronsPFlow.isolationCut = .1
 process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = False
 process.pfSelectedElectronsPFlow.cut = 'pt > 10'
 
+# Clone selectedPatMuonsPFlow / selectedPatElectronsPFlow, and use in input pfMuonsPFlow / pfElectronsPFlow
+
+process.patMuonsLoosePFlow = process.patMuonsPFlow.clone(
+  pfMuonSource = cms.InputTag("pfMuonsPFlow"),
+  embedGenMatch = False,
+  addGenMatch = False
+)
+process.selectedPatMuonsLoosePFlow = process.selectedPatMuonsPFlow.clone(
+  src = cms.InputTag("patMuonsLoosePFlow")
+)
+process.patDefaultSequencePFlow += (process.patMuonsLoosePFlow * process.selectedPatMuonsLoosePFlow)
+
+process.patElectronsLoosePFlow = process.patElectronsPFlow.clone(
+  pfElectronSource = cms.InputTag("pfElectronsPFlow"),
+  embedGenMatch = False,
+  addGenMatch = False
+)
+process.selectedPatElectronsLoosePFlow = process.selectedPatElectronsPFlow.clone(
+  src = cms.InputTag("patElectronsLoosePFlow")
+)
+adaptPFIsoElectrons(process, process.patElectronsLoosePFlow, postfix, "03")
+process.patDefaultSequencePFlow += (process.patElectronsLoosePFlow * process.selectedPatElectronsLoosePFlow)
+
 process.patSeq = cms.Sequence(
     process.goodOfflinePrimaryVertices +
+    getattr(process, "patPF2PATSequence" + postfix) +
     process.patConversions +
-    process.patConversionsLoose +
-    getattr(process, "patPF2PATSequence" + postfix)
+    process.patConversionsLoose
     )
 
 if runOnMC == False:
@@ -206,7 +266,7 @@ process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
 
 process.filtersSeq = cms.Sequence(
    process.primaryVertexFilter *
-   process.scrapingVeto *
+   #process.scrapingVeto *
    process.HBHENoiseFilter *
    process.CSCTightHaloFilter *
    process.hcalLaserEventFilter *
@@ -231,14 +291,21 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep PileupSummaryInfos_*_*_*',
     'keep double_kt6PFJets_rho_*',
     'keep *_patConversions*_*_*',
+    'keep *_patPFMet*_*_PAT', # Keep raw met
     *patEventContentNoCleaning ) 
+
+process.out.outputCommands += [
+  'drop *_selectedPatJetsForMET*_*_*',
+  'drop *_selectedPatJets*_pfCandidates_*'
+  ]
 
 ## ------------------------------------------------------
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = cms.string('START53_V11::All')
 process.source.fileNames = [
-    'file:input_mc.root'
+    #'file:input_mc.root'
+    '/store/mc/Summer12_DR53X/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/7E5CC86C-7703-E211-9542-00215E221098.root'
     ]
 
 process.out.fileName = cms.untracked.string('patTuple.root')
@@ -247,6 +314,6 @@ process.maxEvents.input = 100
 
 process.options.wantSummary = True 
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 print("Config loaded")
