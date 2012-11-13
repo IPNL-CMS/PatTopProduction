@@ -287,12 +287,12 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep PileupSummaryInfos_*_*_*',
     'keep double_kt6PFJets_rho_*',
     'keep *_patConversions*_*_*',
-    'keep *_patPFMet*_*_PAT', # Keep raw met
     *patEventContentNoCleaning ) 
 
 process.out.outputCommands += [
   'drop *_selectedPatJetsForMET*_*_*',
-  'drop *_selectedPatJets*_pfCandidates_*'
+  'drop *_selectedPatJets*_pfCandidates_*',
+  'keep *_patPFMet*_*_PAT' # Keep raw met
   ]
 
 ## ------------------------------------------------------
