@@ -285,7 +285,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_offlinePrimaryVertices_*_*',
     'keep recoPFCandidates_particleFlow_*_*',
     'keep PileupSummaryInfos_*_*_*',
-    'keep double_kt6PFJets_rho_*',
+    'keep double_*_rho_*',
     'keep *_patConversions*_*_*',
     *patEventContentNoCleaning ) 
 
