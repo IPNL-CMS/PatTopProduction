@@ -1,17 +1,20 @@
 [CRAB]
 jobtype = cmssw
 scheduler = glite
-use_server = 1
+use_server = 0
 
 [CMSSW]
 
 datasetpath = @datasetname@
-pset = patTuple_PF2PAT_MC_cfg.py
 
-total_number_of_events = -1
+pset = patTuple_PF2PAT_data_cfg.py
+lumi_mask = @lumi_mask@
+@runselection@
+
+total_number_of_lumis = -1
 
 ### Number of events to be processed per job
-events_per_job = 50000
+lumis_per_job = 80
 
 ### The output files produced by your application (comma separated list)
 output_file = patTuple.root
@@ -25,13 +28,13 @@ ui_working_dir = @uiworkingdir@
 return_data = 0
 copy_data = 1
 
-publish_data = 1
-dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet
-publish_data_name = @publish_data_name@
-
 storage_element = T3_FR_IPNL
 
 check_user_remote_dir = 0
+
+publish_data = 1
+dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet
+publish_data_name = @publish_data_name@
 
 [GRID]
 rb = CERN

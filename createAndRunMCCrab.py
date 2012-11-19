@@ -1,8 +1,12 @@
 #! /usr/bin/env python
 
-import os
+import os, datetime, pwd
 
-version = 1
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
+(options, args) = parser.parse_args()
+
 datasets = {
     "/TTJets_TuneZ2star_8TeV-madgraph-tauola/Summer12-PU_S7_START52_V5-v1/AODSIM": "TTJets",
     "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM": "Tbar_t-channel",
@@ -19,11 +23,29 @@ datasets = {
     "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/Summer12-PU_S7_START52_V9-v1/AODSIM": "WJetsToLNu"
     }
 
-for dataset, ui in datasets.items():
-  name = ("%s_2012_v%d") % (ui, version)
-  ui_working_dir = ("crab_%s") % (name)
-  publish_name = ("%s_2012_PF2PAT_v%d") % (ui, version)
-  output_file = "crab_MC_%s.cfg" % name
+# Get email address
+email = "%s@ipnl.in2p3.fr" % (pwd.getpwuid(os.getuid()).pw_name)
 
-  print "Creating config file for '%s', using publishing name '%s'" % (dataset, publish_name)
-  os.system("sed -e \"s/@datasetname@/%s/g\" -e \"s/@uiworkingdir@/%s/g\" -e \"s/@publish_data_name@/%s/g\" crab_MC.cfg.template.ipnl > %s" % (dataset.replace("/", "\\/"), ui_working_dir, publish_name, output_file))
+d = datetime.datetime.now().strftime("%d%b%y")
+
+version = 1
+
+print("Creating configs for crab. Today is %s, you are %s and it's version %d" % (d, email, version))
+print("")
+
+for dataset_path, dataset_name in datasets.items():
+
+  publish_name = "%s_%s-v%d" % (dataset_name, d, version)
+  ui_working_dir = ("crab_MC_%s") % (dataset_name)
+  output_file = "crab_MC_%s.cfg" % (dataset_name)
+
+  print("Creating config file for '%s'" % (dataset_path))
+  print("\tName: %s" % dataset_name)
+  print("\tPublishing name: %s" % publish_name)
+  print("")
+
+  os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" crab_MC.cfg.template.ipnl > %s" % (dataset_name, ui_working_dir, publish_name, email, output_file))
+
+  cmd = "crab -create -submit -cfg %s" % (output_file)
+  if options.run:
+    os.system(cmd)
