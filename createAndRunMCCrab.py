@@ -8,19 +8,26 @@ parser.add_option("", "--run", action="store_true", dest="run", default=False, h
 (options, args) = parser.parse_args()
 
 datasets = {
-    "/TTJets_TuneZ2star_8TeV-madgraph-tauola/Summer12-PU_S7_START52_V5-v1/AODSIM": "TTJets",
-    "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM": "Tbar_t-channel",
-    "/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM": "Tbar_tW-channel",
-    "/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM": "Tbar_s-channel",
-    "/T_t-channel_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9_ext-v1/AODSIM": "T_t-channel",
-    "/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM": "T_tW-channel",
-    "/T_s-channel_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM": "T_s-channel",
-    "/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM": "QCD_Pt_20_30_EMEnriched",
-    "/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM": "QCD_Pt_30_80_EMEnriched",
-    "/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM" : "QCD_Pt_80_170_EMEnriched",
-    "/QCD_Pt_20_MuEnrichedPt_15_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM" : "QCD_Pt_20_MuEnriched",
-    "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/Summer12-PU_S7_START52_V5-v2/AODSIM": "DYJetsToLL_M-50",
-    "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/Summer12-PU_S7_START52_V9-v1/AODSIM": "WJetsToLNu"
+    # Single top
+    "/Tbar_s-channel_TuneZ2star_8TeV-powheg-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Tbar_s-channel",
+    "/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Tbar_t-channel",
+    "/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Tbar_tW-channel",
+
+    # Single anti-top
+    "/T_t-channel_TuneZ2star_8TeV-powheg-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "T_t-channel",
+    "/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "T_tW-channel",
+    "/T_s-channel_TuneZ2star_8TeV-powheg-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "T_s-channel",
+
+    # TT + jets
+    "/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "TTJets_MassiveBinDECAY",
+
+    #"/QCD_Pt_20_30_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM": "QCD_Pt_20_30_EMEnriched",
+    #"/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM": "QCD_Pt_30_80_EMEnriched",
+    #"/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM" : "QCD_Pt_80_170_EMEnriched",
+    #"/QCD_Pt_20_MuEnrichedPt_15_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1/AODSIM" : "QCD_Pt_20_MuEnriched",
+
+    "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "DYJetsToLL_M-50",
+    "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM": "WJetsToLNu"
     }
 
 # Get email address
@@ -35,7 +42,7 @@ print("")
 
 for dataset_path, dataset_name in datasets.items():
 
-  dataset_globaltag = re.search('START\d{0,2}_V\d', dataset_path).group(0)
+  dataset_globaltag = re.search('START\d{0,2}_V\d[A-Z]?', dataset_path).group(0)
 
   publish_name = "%s_%s_%s-v%d" % (dataset_name, dataset_globaltag, d, version)
   ui_working_dir = ("crab_MC_%s") % (dataset_name)
