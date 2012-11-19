@@ -6,18 +6,16 @@ runOnMC = False
 
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
-process.primaryVertexFilter = cms.EDFilter(
-    "VertexSelector",
+process.primaryVertexFilter = cms.EDFilter("VertexSelector",
     src = cms.InputTag("offlinePrimaryVertices"),
     cut = cms.string("!isFake & ndof > 4 & abs(z) <= 24 & position.Rho <= 2"),
     filter = cms.bool(True)
     )
 
-from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
-process.goodOfflinePrimaryVertices = cms.EDFilter(
-    "PrimaryVertexObjectFilter",
-    filterParams = pvSelector.clone( minNdof = cms.double(4.0), maxZ = cms.double(24.0) ),
-    src=cms.InputTag('offlinePrimaryVertices')
+process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
+    filterParams = cms.PSet(minNdof = cms.double(4.), maxZ = cms.double(24.) , maxRho = cms.double(2.)),
+    filter = cms.bool(True),
+    src = cms.InputTag('offlinePrimaryVertices')
     )
 
 from PhysicsTools.PatAlgos.tools.pfTools import *
@@ -282,17 +280,22 @@ process.p = cms.Path(
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep edmTriggerResults_*_*_*',
-    'keep *_offlinePrimaryVertices_*_*',
+    'keep *_*fflinePrimaryVertices_*_*', # It's NOT a typo
     'keep recoPFCandidates_particleFlow_*_*',
     'keep PileupSummaryInfos_*_*_*',
-    'keep double_*_rho_*',
+    'keep double_kt6PFJets*_rho_*',
     'keep *_patConversions*_*_*',
     *patEventContentNoCleaning ) 
 
 process.out.outputCommands += [
   'drop *_selectedPatJetsForMET*_*_*',
   'drop *_selectedPatJets*_pfCandidates_*',
-  'keep *_patPFMet*_*_PAT' # Keep raw met
+  'keep *_patPFMet*_*_PAT', # Keep raw met
+  'keep *_allConversions*_*_*',
+
+  # For isolations and conversions vetoes
+  'keep *_gsfElectron*_*_*',
+  'keep *_offlineBeamSpot*_*_*'
   ]
 
 ## ------------------------------------------------------
@@ -301,15 +304,16 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = cms.string('GR_R_53_V13::All')
 process.source.fileNames = [ 
     #'file:input_data.root'
-    '/store/data/Run2012C/SingleMu/AOD/TOPMuPlusJets-24Aug2012-v1/00000/C8186FFC-2BEF-E111-80FB-001EC9D8D993.root'
+    #'/store/data/Run2012C/SingleMu/AOD/TOPMuPlusJets-24Aug2012-v1/00000/C8186FFC-2BEF-E111-80FB-001EC9D8D993.root'
+    '/store/data/Run2012C/SingleElectron/AOD/TOPElePlusJets-24Aug2012-v1/00000/E0E40F2F-BDFB-E111-A073-0026189438FE.root'
     ]
 
 process.out.fileName = cms.untracked.string('patTuple.root')
 
-process.maxEvents.input = 100
+process.maxEvents.input = 200
 
 process.options.wantSummary = True 
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 print("Config loaded")

@@ -6,18 +6,16 @@ runOnMC = True
 
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
-process.primaryVertexFilter = cms.EDFilter(
-    "VertexSelector",
+process.primaryVertexFilter = cms.EDFilter("VertexSelector",
     src = cms.InputTag("offlinePrimaryVertices"),
     cut = cms.string("!isFake & ndof > 4 & abs(z) <= 24 & position.Rho <= 2"),
     filter = cms.bool(True)
     )
 
-from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
-process.goodOfflinePrimaryVertices = cms.EDFilter(
-    "PrimaryVertexObjectFilter",
-    filterParams = pvSelector.clone( minNdof = cms.double(4.0), maxZ = cms.double(24.0) ),
-    src=cms.InputTag('offlinePrimaryVertices')
+process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
+    filterParams = cms.PSet(minNdof = cms.double(4.), maxZ = cms.double(24.) , maxRho = cms.double(2.)),
+    filter = cms.bool(True),
+    src = cms.InputTag('offlinePrimaryVertices')
     )
 
 from PhysicsTools.PatAlgos.tools.pfTools import *
@@ -158,6 +156,11 @@ process.patConversionsLoose = cms.EDProducer("PATConversionProducer",
     # this should be your last selected electron collection name since currently index is used to match with electron later. We can fix this using reference pointer.
 )
 
+# This rho value is needed for computing effective area for 2011 MC corrections. This won't be needed anymore as soon as corrections are available for 2012 MC
+from RecoJets.JetProducers.kt4PFJets_cfi import *
+process.kt6PFJetsForIsolation = kt4PFJets.clone(rParam = 0.6, doRhoFastjet = True)
+process.kt6PFJetsForIsolation.Rho_EtaMax = cms.double(2.5)
+
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True 
 getattr(process,"pfNoMuon"+postfix).enable = True 
@@ -286,17 +289,22 @@ from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_genParticles*_*_*',
     'keep edmTriggerResults_*_*_*',
-    'keep *_offlinePrimaryVertices_*_*',
+    'keep *_*fflinePrimaryVertices_*_*', # It's NOT a typo
     'keep recoPFCandidates_particleFlow_*_*',
     'keep PileupSummaryInfos_*_*_*',
-    'keep double_*_rho_*',
+    'keep double_kt6PFJets*_rho_*',
     'keep *_patConversions*_*_*',
     *patEventContentNoCleaning ) 
 
 process.out.outputCommands += [
   'drop *_selectedPatJetsForMET*_*_*',
   'drop *_selectedPatJets*_pfCandidates_*',
-  'keep *_patPFMet*_*_PAT' # Keep raw met
+  'keep *_patPFMet*_*_PAT', # Keep raw met
+  'keep *_allConversions*_*_*',
+
+  # For isolations and conversions vetoes
+  'keep *_gsfElectron*_*_*',
+  'keep *_offlineBeamSpot*_*_*'
   ]
 
 ## ------------------------------------------------------
