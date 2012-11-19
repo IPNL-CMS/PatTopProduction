@@ -301,7 +301,7 @@ process.out.outputCommands += [
 ## ------------------------------------------------------
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string('GR_R_53_V13::All')
+process.GlobalTag.globaltag = cms.string('GR_R_53_V16::All')
 process.source.fileNames = [ 
     #'file:input_data.root'
     #'/store/data/Run2012C/SingleMu/AOD/TOPMuPlusJets-24Aug2012-v1/00000/C8186FFC-2BEF-E111-80FB-001EC9D8D993.root'
