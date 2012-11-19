@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-import os, datetime, pwd
+import os, datetime, pwd, re
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -35,7 +35,9 @@ print("")
 
 for dataset_path, dataset_name in datasets.items():
 
-  publish_name = "%s_%s-v%d" % (dataset_name, d, version)
+  dataset_globaltag = re.search('START\d{0,2}_V\d', dataset_path).group(0)
+
+  publish_name = "%s_%s_%s-v%d" % (dataset_name, dataset_globaltag, d, version)
   ui_working_dir = ("crab_MC_%s") % (dataset_name)
   output_file = "crab_MC_%s.cfg" % (dataset_name)
 
