@@ -76,7 +76,7 @@ for dataset_path, dataset_name in datasets.items():
   print("\tPublishing name: %s" % publish_name)
   print("")
 
-  os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" crab_MC.cfg.template.ipnl > %s" % (dataset_name, ui_working_dir, publish_name, email, output_file))
+  os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" crab_MC.cfg.template.ipnl > %s" % (dataset_path, ui_working_dir, publish_name, email, output_file))
 
   cmd = "crab -create -submit -cfg %s" % (output_file)
   if options.run:
