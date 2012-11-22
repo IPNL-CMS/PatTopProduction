@@ -1,7 +1,19 @@
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing()
+
+options.register ('globalTag',
+          '',
+          VarParsing.multiplicity.singleton,
+          VarParsing.varType.string,
+          "The globaltag to be used")
+
+options.parseArguments()
+if len(options.globalTag) == 0:
+  raise Exception("You _must_ pass a globalTag options to this script. Use --help for more informations")
+
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
 
 print("Loading python config...")
-
 runOnMC = False
 
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
@@ -312,7 +324,7 @@ process.out.outputCommands += [
 ## ------------------------------------------------------
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string('GR_R_53_V16::All')
+process.GlobalTag.globaltag = cms.string("%s::All" % options.globalTag)
 process.source.fileNames = [ 
     #'file:input_data.root'
     #'/store/data/Run2012C/SingleMu/AOD/TOPMuPlusJets-24Aug2012-v1/00000/C8186FFC-2BEF-E111-80FB-001EC9D8D993.root'

@@ -8,6 +8,8 @@ use_server = 0
 datasetpath = @datasetname@
 
 pset = patTuple_PF2PAT_data_cfg.py
+pycfg_params = globalTag=@globaltag@
+
 lumi_mask = @lumi_mask@
 @runselection@
 
