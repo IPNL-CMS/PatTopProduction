@@ -28,6 +28,29 @@ datasets = {
 
     "/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "DYJetsToLL_M-50",
     "/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM": "WJetsToLNu"
+
+    # Signal datasets
+    # RS Gluons
+    #"/RSGluonToTT_M-700_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "RSGluon700",
+    #"/RSGluonToTT_M-1000_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "RSGluon1000",
+    #"/RSGluonToTT_M-1200_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "RSGluon1200",
+    #"/RSGluonToTT_M-1500_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "RSGluon1500",
+    #"/RSGluonToTT_M-1600_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "RSGluon1600",
+    #"/RSGluonToTT_M-2000_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "RSGluon2000",
+
+    # Z' narrow
+    #"/ZPrimeToTTJets_M750GeV_W7p5GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_750_Narrow",
+    #"/ZPrimeToTTJets_M1000GeV_W10GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_1000_Narrow",
+    #"/ZPrimeToTTJets_M1250GeV_W12p5GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_1250_Narrow",
+    #"/ZPrimeToTTJets_M1500GeV_W15GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_1500_Narrow",
+    #"/ZPrimeToTTJets_M2000GeV_W20GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_2000_Narrow",
+
+    # Z' large
+    #"/ZPrimeToTTJets_M750GeV_W75GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_750_Large",
+    #"/ZPrimeToTTJets_M1000GeV_W100GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_1000_Large",
+    #"/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_1250_Large",
+    #"/ZPrimeToTTJets_M1500GeV_W150GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_1500_Large",
+    #"/ZPrimeToTTJets_M2000GeV_W200GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM" : "Zprime_2000_Large"
     }
 
 # Get email address
