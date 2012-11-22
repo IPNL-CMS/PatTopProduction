@@ -156,6 +156,16 @@ process.patConversionsLoose = cms.EDProducer("PATConversionProducer",
     # this should be your last selected electron collection name since currently index is used to match with electron later. We can fix this using reference pointer.
 )
 
+# Compute effective areas for correcting isolation
+process.load("EGamma.EGammaAnalysisTools.electronEffectiveAreaProducer_cfi")
+
+process.elEffectiveAreas03.src = cms.InputTag("pfSelectedElectrons" + postfix)
+
+getattr(process, "pfElectronIsolationSequence" + postfix).replace(
+    getattr(process, "elPFIsoValuePU04NoPFId" + postfix),
+    getattr(process, "elPFIsoValuePU04NoPFId" + postfix) * process.elEffectiveAreas03
+    )
+
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True 
 getattr(process,"pfNoMuon"+postfix).enable = True 
@@ -182,7 +192,8 @@ process.pfSelectedMuonsPFlow.cut = 'pt > 10 & muonRef().isNonnull & muonRef().is
 process.patElectronsPFlow.usePV = False
 process.patElectronsPFlow.embedTrack = True
 process.pfIsolatedElectronsPFlow.isolationCut = .1
-process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = False
+process.pfIsolatedElectronsPFlow.doDeltaBetaCorrection = False
+process.pfIsolatedElectronsPFlow.doEffectiveAreaCorrection = True
 process.pfSelectedElectronsPFlow.cut = 'pt > 10'
 
 # Clone selectedPatMuonsPFlow / selectedPatElectronsPFlow, and use in input pfMuonsPFlow / pfElectronsPFlow
@@ -310,10 +321,10 @@ process.source.fileNames = [
 
 process.out.fileName = cms.untracked.string('patTuple.root')
 
-process.maxEvents.input = 200
+process.maxEvents.input = -1
 
-process.options.wantSummary = True 
+process.options.wantSummary = False
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 print("Config loaded")

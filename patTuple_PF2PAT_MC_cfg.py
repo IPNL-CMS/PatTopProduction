@@ -161,6 +161,17 @@ from RecoJets.JetProducers.kt4PFJets_cfi import *
 process.kt6PFJetsForIsolation = kt4PFJets.clone(rParam = 0.6, doRhoFastjet = True)
 process.kt6PFJetsForIsolation.Rho_EtaMax = cms.double(2.5)
 
+# Compute effective areas for correcting isolation
+process.load("EGamma.EGammaAnalysisTools.electronEffectiveAreaProducer_cfi")
+
+process.elEffectiveAreas03.src    = cms.InputTag("pfSelectedElectrons" + postfix)
+process.elEffectiveAreas03.target = cms.string("EAFall11MC")
+
+getattr(process, "pfElectronIsolationSequence" + postfix).replace(
+    getattr(process, "elPFIsoValuePU04NoPFId" + postfix),
+    getattr(process, "elPFIsoValuePU04NoPFId" + postfix) * process.elEffectiveAreas03
+    )
+
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True 
 getattr(process,"pfNoMuon"+postfix).enable = True 
@@ -187,7 +198,9 @@ process.pfSelectedMuonsPFlow.cut = 'pt > 10 & muonRef().isNonnull & muonRef().is
 process.patElectronsPFlow.usePV = False
 process.patElectronsPFlow.embedTrack = True
 process.pfIsolatedElectronsPFlow.isolationCut = .1
-process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = False
+process.pfIsolatedElectronsPFlow.doDeltaBetaCorrection = False
+process.pfIsolatedElectronsPFlow.doEffectiveAreaCorrection = True
+process.pfIsolatedElectronsPFlow.rho = cms.InputTag("kt6PFJetsForIsolation", "rho")
 process.pfSelectedElectronsPFlow.cut = 'pt > 10'
 
 # Clone selectedPatMuonsPFlow / selectedPatElectronsPFlow, and use in input pfMuonsPFlow / pfElectronsPFlow
@@ -215,6 +228,7 @@ process.patDefaultSequencePFlow += (process.patElectronsLoosePFlow * process.sel
 
 process.patSeq = cms.Sequence(
     process.goodOfflinePrimaryVertices +
+    process.kt6PFJetsForIsolation +
     getattr(process, "patPF2PATSequence" + postfix) +
     process.patConversions +
     process.patConversionsLoose
@@ -320,8 +334,8 @@ process.out.fileName = cms.untracked.string('patTuple.root')
 
 process.maxEvents.input = -1
 
-process.options.wantSummary = True 
+process.options.wantSummary = False
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 print("Config loaded")
