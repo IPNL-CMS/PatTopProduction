@@ -41,3 +41,4 @@ publish_data_name = @publish_data_name@
 [GRID]
 rb = CERN
 virtual_organization = cms
+ce_white_list=T3_FR_IPNL
