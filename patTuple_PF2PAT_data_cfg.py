@@ -39,9 +39,19 @@ jetCorrections = ('AK5PFchs', ['L1FastJet','L2Relative','L3Absolute', 'L2L3Resid
 # Jet corrections when NOT using CHS
 #jetCorrections = ('AK5PF', ['L1FastJet','L2Relative','L3Absolute', 'L2L3Residual'] )
 
-# Type I MET enable
+# Type I MET enabled
 usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC , postfix=postfix, jetCorrections = jetCorrections, typeIMetCorrections=True,
   pvCollection = cms.InputTag('goodOfflinePrimaryVertices'))
+
+# Add Type-0 corrections to path
+process.patType0MetCorrections = cms.Sequence(
+		process.type0PFMEtCorrection *
+		process.patPFMETtype0Corr
+		)
+
+cloneProcessingSnippet(process, process.patType0MetCorrections, postfix);
+
+process.producePatPFMETCorrectionsPFlow.replace(getattr(process, 'patPFJetMETtype2Corr' + postfix), getattr(process, 'patPFJetMETtype2Corr' + postfix) * getattr(process, 'patType0MetCorrections' + postfix))
 
 # Turn on Type 0 + Type I correction for MET on a cloned collection
 setattr(process, 'patType0p1CorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
@@ -69,7 +79,7 @@ process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
 process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
 
 # use for 2012 Data
-process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_data
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCvsNvtx_data
 
 # use for Spring'12 MC
 #process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_mc

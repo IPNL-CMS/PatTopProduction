@@ -27,9 +27,19 @@ jetCorrections = ('AK5PFchs', ['L1FastJet','L2Relative','L3Absolute'] )
 # Jet corrections when NOT using CHS
 #jetCorrections = ('AK5PF', ['L1FastJet','L2Relative','L3Absolute'] )
 
-# Type I MET enable
+# Type I MET enabled
 usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC , postfix=postfix, jetCorrections = jetCorrections, typeIMetCorrections=True,
   pvCollection = cms.InputTag('goodOfflinePrimaryVertices'))
+
+# Add Type-0 corrections to path
+process.patType0MetCorrections = cms.Sequence(
+		process.type0PFMEtCorrection *
+		process.patPFMETtype0Corr
+		)
+
+cloneProcessingSnippet(process, process.patType0MetCorrections, postfix);
+
+process.producePatPFMETCorrectionsPFlow.replace(getattr(process, 'patPFJetMETtype2Corr' + postfix), getattr(process, 'patPFJetMETtype2Corr' + postfix) * getattr(process, 'patType0MetCorrections' + postfix))
 
 # Turn on Type 0 + Type I correction for MET on a cloned collection
 setattr(process, 'patType0p1CorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
@@ -60,7 +70,7 @@ process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
 #process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_data
 
 # use for Spring'12 MC
-process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_mc
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCvsNvtx_mc
 
 # CLone our Type 0 + Type I MET, and add Phi corrections
 setattr(process, 'patType0p1ShiftCorrCorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
@@ -325,11 +335,16 @@ process.out.outputCommands += [
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFrontierConditions?redirectedfrom=CMS.SWGuideFrontierConditions#Summary_of_Global_Tags_used_in_o
-process.GlobalTag.globaltag = cms.string('START53_V7G::All')
+process.GlobalTag.globaltag = cms.string('START53_V19PR::All')
+
+# RelVal in inputs
+#from PhysicsTools.PatAlgos.tools.cmsswVersionTools import pickRelValInputFiles
+#process.source.fileNames = pickRelValInputFiles(cmsswVersion = "CMSSW_5_3_6", globalTag = "PU_START53_V14", debug = True, numberOfFiles = 1)
+
 process.source.fileNames = [
-    #'file:input_mc.root'
-    '/store/mc/Summer12_DR53X/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/7E5CC86C-7703-E211-9542-00215E221098.root'
-    ]
+  #'file:input_mc.root'
+  '/store/mc/Summer12_DR53X/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/7E5CC86C-7703-E211-9542-00215E221098.root'
+  ]
 
 process.out.fileName = cms.untracked.string('patTuple.root')
 
