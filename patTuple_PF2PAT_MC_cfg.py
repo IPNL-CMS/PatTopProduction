@@ -325,7 +325,7 @@ process.out.outputCommands += [
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFrontierConditions?redirectedfrom=CMS.SWGuideFrontierConditions#Summary_of_Global_Tags_used_in_o
-process.GlobalTag.globaltag = cms.string('START53_V7G::All')
+process.GlobalTag.globaltag = cms.string('START53_V19PR::All')
 process.source.fileNames = [
     #'file:input_mc.root'
     '/store/mc/Summer12_DR53X/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/7E5CC86C-7703-E211-9542-00215E221098.root'
