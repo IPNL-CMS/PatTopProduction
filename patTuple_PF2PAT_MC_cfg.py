@@ -311,6 +311,7 @@ process.p = cms.Path(
 # Add PF2PAT output to the created file
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 process.out.outputCommands = cms.untracked.vstring('drop *',
+    'keep GenEventInfoProduct_generator_*_*',
     'keep *_genParticles*_*_*',
     'keep edmTriggerResults_*_*_*',
     'keep *_*fflinePrimaryVertices_*_*', # It's NOT a typo
