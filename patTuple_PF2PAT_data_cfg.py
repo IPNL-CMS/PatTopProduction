@@ -262,45 +262,17 @@ process.scrapingVeto = cms.EDFilter("FilterOutScraping",
     thresh = cms.untracked.double(0.25)
     )
 
-# HB + HE noise filtering
-process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
+# MET Filters
+process.load('RecoMET.METFilters.metFilters_cff')
 
-## The CSC beam halo tight filter
-process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
-
-## The HCAL laser filter _____________________________________________________||
-process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
-process.hcalLaserEventFilter.vetoByRunEventNumber=cms.untracked.bool(False)
-process.hcalLaserEventFilter.vetoByHBHEOccupancy=cms.untracked.bool(True)
-
-## The ECAL dead cell trigger primitive filter _______________________________||
-process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
-## For AOD and RECO recommendation to use recovered rechits
-process.EcalDeadCellTriggerPrimitiveFilter.tpDigiCollection = cms.InputTag("ecalTPSkimNA")
-
-## The EE bad SuperCrystal filter ____________________________________________||
-process.load('RecoMET.METFilters.eeBadScFilter_cfi')
-
-## The Good vertices collection needed by the tracking failure filter ________||
-process.goodVertices = cms.EDFilter(
-  "VertexSelector",
-  filter = cms.bool(False),
-  src = cms.InputTag("offlinePrimaryVertices"),
-  cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.rho < 2")
-)
-
-## The tracking failure filter _______________________________________________||
-process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+# HCAL Filter : only valid if running on Winter13 rereco
+process.load("EventFilter.HcalRawToDigi.hcallaserFilterFromTriggerResult_cff")
 
 process.filtersSeq = cms.Sequence(
+   process.hcalfilter *
    process.primaryVertexFilter *
    process.scrapingVeto *
-   process.HBHENoiseFilter *
-   process.CSCTightHaloFilter *
-   process.hcalLaserEventFilter *
-   process.EcalDeadCellTriggerPrimitiveFilter *
-   process.goodVertices * process.trackingFailureFilter *
-   process.eeBadScFilter
+   process.metFilters
 )
 
 # Let it run
@@ -338,7 +310,7 @@ process.GlobalTag.globaltag = cms.string("%s::All" % options.globalTag)
 process.source.fileNames = [ 
     #'file:input_data.root'
     #'/store/data/Run2012C/SingleMu/AOD/TOPMuPlusJets-24Aug2012-v1/00000/C8186FFC-2BEF-E111-80FB-001EC9D8D993.root'
-    '/store/data/Run2012C/SingleElectron/AOD/TOPElePlusJets-24Aug2012-v1/00000/E0E40F2F-BDFB-E111-A073-0026189438FE.root'
+    '/store/data/Run2012B/SingleMu/AOD/TOPMuPlusJets-22Jan2013-v1/20000/FA21ADAF-AE71-E211-83D4-90E6BA19A243.root'
     ]
 
 process.out.fileName = cms.untracked.string('patTuple.root')

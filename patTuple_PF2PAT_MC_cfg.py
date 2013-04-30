@@ -261,45 +261,13 @@ process.scrapingVeto = cms.EDFilter("FilterOutScraping",
     thresh = cms.untracked.double(0.25)
     )
 
-# HB + HE noise filtering
-process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
-
-## The CSC beam halo tight filter
-process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
-
-## The HCAL laser filter _____________________________________________________||
-process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
-process.hcalLaserEventFilter.vetoByRunEventNumber=cms.untracked.bool(False)
-process.hcalLaserEventFilter.vetoByHBHEOccupancy=cms.untracked.bool(True)
-
-## The ECAL dead cell trigger primitive filter _______________________________||
-process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
-## For AOD and RECO recommendation to use recovered rechits
-process.EcalDeadCellTriggerPrimitiveFilter.tpDigiCollection = cms.InputTag("ecalTPSkimNA")
-
-## The EE bad SuperCrystal filter ____________________________________________||
-process.load('RecoMET.METFilters.eeBadScFilter_cfi')
-
-## The Good vertices collection needed by the tracking failure filter ________||
-process.goodVertices = cms.EDFilter(
-  "VertexSelector",
-  filter = cms.bool(False),
-  src = cms.InputTag("offlinePrimaryVertices"),
-  cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.rho < 2")
-)
-
-## The tracking failure filter _______________________________________________||
-process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+# MET Filters
+process.load('RecoMET.METFilters.metFilters_cff')
 
 process.filtersSeq = cms.Sequence(
    process.primaryVertexFilter *
    #process.scrapingVeto *
-   process.HBHENoiseFilter *
-   process.CSCTightHaloFilter *
-   process.hcalLaserEventFilter *
-   process.EcalDeadCellTriggerPrimitiveFilter *
-   process.goodVertices * process.trackingFailureFilter *
-   process.eeBadScFilter
+   process.metFilters
 )
 
 # Let it run
@@ -336,7 +304,7 @@ process.out.outputCommands += [
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFrontierConditions?redirectedfrom=CMS.SWGuideFrontierConditions#Summary_of_Global_Tags_used_in_o
-process.GlobalTag.globaltag = cms.string('START53_V19PR::All')
+process.GlobalTag.globaltag = cms.string('START53_V21::All')
 
 # RelVal in inputs
 #from PhysicsTools.PatAlgos.tools.cmsswVersionTools import pickRelValInputFiles
