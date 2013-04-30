@@ -7,25 +7,29 @@ parser = OptionParser()
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
 (options, args) = parser.parse_args()
 
-global_json = "Cert_190456-208686_8TeV_PromptReco_Collisions12_JSON.txt"
+global_json = "Cert_190456-203742_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
 
 datasets = [
-    ["/MuHad/Run2012A-13Jul2012-v1/AOD", "MuHad_Run2012A-13Jul2012", "Cert_190456-196531_8TeV_13Jul2012ReReco_Collisions12_JSON_v2.txt", "FT_53_V6C_AN4", [190456, 193621]],
-    ["/MuHad/Run2012A-recover-06Aug2012-v1/AOD", "MuHad_Run2012A-recover-06Aug2012", "Cert_190782-190949_8TeV_06Aug2012ReReco_Collisions12_JSON.txt", "FT_53_V6C_AN4", [190782, 190949]],
-    ["/SingleMu/Run2012B-TOPMuPlusJets-13Jul2012-v1/AOD", "SingleMu_Run2012B-TOPMuPlusJets-13Jul2012", "Cert_190456-196531_8TeV_13Jul2012ReReco_Collisions12_JSON_v2.txt", "FT_53_V6C_AN4", [193833, 196531]],
-    ["/SingleMu/Run2012C-TOPMuPlusJets-24Aug2012-v1/AOD", "SingleMu_Run2012C-TOPMuPlusJets-24Aug2012", "Cert_198022-198523_8TeV_24Aug2012ReReco_Collisions12_JSON.txt", "FT53_V10A_AN4", [198022, 198913]],
-    ["/SingleMu/Run2012C-TOPMuPlusJets-PromptSkim-v3/AOD", "SingleMu_Run2012C-TOPMuPlusJets-PromptSkim", "", "GR_P_V42_AN4", [198934, 203746]],
-    ["/SingleMu/Run2012C-EcalRecover_11Dec2012-v1/AOD", "SingleMu_Run2012C-EcalRecover_11Dec2012", "Cert_201191-201191_8TeV_11Dec2012ReReco-recover_Collisions12_JSON.txt", "FT_P_V42C_AN4", [201191, 201191]],
-    ["/SingleMu/Run2012D-TOPMuPlusJets-PromptSkim-v1/AOD", "SingleMu_Run2012D-TOPMuPlusJets-PromptSkim", "", "GR_P_V42_AN4", [203768, 208686]],
-
-    ["/ElectronHad/Run2012A-13Jul2012-v1/AOD", "ElectronHad_Run2012A-13Jul2012", "Cert_190456-196531_8TeV_13Jul2012ReReco_Collisions12_JSON_v2.txt", "FT_53_V6C_AN4", [190456, 193621]],
-    ["/ElectronHad/Run2012A-recover-06Aug2012-v1/AOD", "ElectronHad_Run2012A-recover-06Aug2012", "Cert_190782-190949_8TeV_06Aug2012ReReco_Collisions12_JSON.txt", "FT_53_V6C_AN4", [190782, 190949]],
-    ["/SingleElectron/Run2012B-TOPElePlusJets-13Jul2012-v1/AOD", "SingleElectron_Run2012B-TOPElePlusJets-13Jul2012", "Cert_190456-196531_8TeV_13Jul2012ReReco_Collisions12_JSON_v2.txt", "FT_53_V6C_AN4", [193833, 196531]],
-    ["/SingleElectron/Run2012C-TOPElePlusJets-24Aug2012-v1/AOD", "SingleElectron_Run2012C-TOPElePlusJets-24Aug2012", "Cert_198022-198523_8TeV_24Aug2012ReReco_Collisions12_JSON.txt", "FT53_V10A_AN4", [198022, 198913]],
-    ["/SingleElectron/Run2012C-TOPElePlusJets-PromptSkim-v3/AOD", "SingleElectron_Run2012C-TOPElePlusJets-PromptSkim", "", "GR_P_V42_AN4", [198934, 203746]],
-    ["/SingleElectron/Run2012C-EcalRecover_11Dec2012-v1/AOD", "SingleElectron_Run2012C-EcalRecover_11Dec2012", "Cert_201191-201191_8TeV_11Dec2012ReReco-recover_Collisions12_JSON.txt", "FT_P_V42C_AN4", [201191, 201191]],
-    ["/SingleElectron/Run2012D-TOPElePlusJets-PromptSkim-v1/AOD", "SingleElectron_Run2012D-TOPElePlusJets-PromptSkim", "", "GR_P_V42_AN4", [203768, 208686]]
-
+    ["/MuHad/Run2012A-22Jan2013-v1/AOD", "MuHad_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
+    ["/SingleMu/Run2012B-TOPMuPlusJets-22Jan2013-v1/AOD", "SingleMu_Run2012B-TOPMuPlusJets-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
+    ["/SingleMu/Run2012C-TOPMuPlusJets-22Jan2013-v1/AOD", "SingleMu_Run2012C-TOPMuPlusJets-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
+    ["/SingleMu/Run2012D-TOPMuPlusJets-22Jan2013-v1/AOD", "SingleMu_Run2012D-TOPMuPlusJets-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686 ]],
+    ["/ElectronHad/Run2012A-22Jan2013-v1/AOD", "ElectronHad_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
+    ["/SingleElectron/Run2012B-TOPElePlusJets-22Jan2013-v1/AOD", "SingleMu_Run2012B-TOPElePlusJets-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
+    ["/SingleElectron/Run2012C-TOPElePlusJets-22Jan2013-v1/AOD", "SingleMu_Run2012C-TOPElePlusJets-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
+    ["/SingleElectron/Run2012D-TOPElePlusJets-22Jan2013-v1/AOD", "SingleMu_Run2012D-TOPElePlusJets-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686 ]],
+##     ["/DoubleElectron/Run2012A-22Jan2013-v1/AOD", "DoubleElectron_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
+##     ["/DoubleElectron/Run2012B-22Jan2013-v1/AOD", "DoubleElectron_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
+##     ["/DoubleElectron/Run2012C-22Jan2013-v1/AOD", "DoubleElectron_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
+##     ["/DoubleElectron/Run2012D-22Jan2013-v1/AOD", "DoubleElectron_Run2012D-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686 ]],
+##     ["/DoubleMu/Run2012A-22Jan2013-v1/AOD", "DoubleMu_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
+##     ["/DoubleMuParked/Run2012B-22Jan2013-v1/AOD", "DoubleMuParked_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
+##     ["/DoubleMuParked/Run2012C-22Jan2013-v1/AOD", "DoubleMuParked_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
+##     ["/DoubleMuParked/Run2012D-22Jan2013-v1/AOD", "DoubleMuParked_Run2012D-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686 ]],
+##     ["/MuEG/Run2012A-22Jan2013-v1/AOD", "MuEG_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
+##     ["/MuEG/Run2012B-22Jan2013-v1/AOD", "MuEG_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
+##     ["/MuEG/Run2012C-22Jan2013-v1/AOD", "MuEG_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
+##     ["/MuEG/Run2012D-22Jan2013-v1/AOD", "MuEG_Run2012D-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686 ]],
     ]
 
 # Get email address
