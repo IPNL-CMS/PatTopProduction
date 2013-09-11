@@ -196,7 +196,8 @@ def createProcess(isMC, globalTag):
             isolationCut = cms.double(0.10),
             ## Added in attached patch
             doEffectiveAreaCorrection = cms.bool(True),
-            effectiveAreas = cms.InputTag("elEffectiveAreas03%s" % postfix)
+            effectiveAreas = cms.InputTag("elEffectiveAreas03%s" % postfix),
+            rho = cms.InputTag("kt6PFJets", "rho")
             )
 
     pfIsolatedElectrons = cms.EDFilter("PFCandidateFwdPtrCollectionStringFilter",
