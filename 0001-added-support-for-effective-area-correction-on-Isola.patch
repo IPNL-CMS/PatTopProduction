@@ -1,10 +1,18 @@
-Index: CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
-===================================================================
-RCS file: /cvs/CMSSW/CMSSW/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h,v
-retrieving revision 1.4
-diff -u -p -r1.4 IsolatedPFCandidateSelectorDefinition.h
---- CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h	27 Jul 2012 08:41:57 -0000	1.4
-+++ CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h	22 Nov 2012 09:48:49 -0000
+From 2280c4cb9664cbf2bedc6470be5bc97c1e5d9e3f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=A9bastien=20Brochet?= <s.brochet@ipnl.in2p3.fr>
+Date: Wed, 11 Sep 2013 09:36:35 +0200
+Subject: [PATCH] added support for effective area correction on
+ IsolatedPFCandidateSelector
+
+---
+ .../IsolatedPFCandidateSelectorDefinition.h        | 212 ++++++++++++---------
+ .../python/Isolation/pfIsolatedPhotons_cfi.py      |   3 +
+ 2 files changed, 122 insertions(+), 93 deletions(-)
+
+diff --git a/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h b/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
+index 7aaa905..88e6ca2 100644
+--- a/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
++++ b/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
 @@ -11,103 +11,129 @@ namespace pf2pat {
  
    class IsolatedPFCandidateSelectorDefinition : public PFCandidateSelectorDefinition {
@@ -34,14 +42,6 @@ diff -u -p -r1.4 IsolatedPFCandidateSelectorDefinition.h
 -	isoMapsCharged(isolationValueMapChargedLabels_.size());
 -      for(unsigned iMap = 0; iMap<isolationValueMapChargedLabels_.size(); ++iMap) {
 -	e.getByLabel(isolationValueMapChargedLabels_[iMap], isoMapsCharged[iMap]);
--      }
--
--
--      // read all neutral isolation value maps
--      std::vector< edm::Handle<IsoMap> > 
--	isoMapsNeutral(isolationValueMapNeutralLabels_.size());
--      for(unsigned iMap = 0; iMap<isolationValueMapNeutralLabels_.size(); ++iMap) {
--	e.getByLabel(isolationValueMapNeutralLabels_[iMap], isoMapsNeutral[iMap]);
 +    public:
 +      typedef edm::ValueMap<double> IsoMap;
 +      typedef edm::ValueMap<double> EffectiveAreaMap;
@@ -152,10 +152,29 @@ diff -u -p -r1.4 IsolatedPFCandidateSelectorDefinition.h
 +        }
        }
  
+ 
+-      // read all neutral isolation value maps
+-      std::vector< edm::Handle<IsoMap> > 
+-	isoMapsNeutral(isolationValueMapNeutralLabels_.size());
+-      for(unsigned iMap = 0; iMap<isolationValueMapNeutralLabels_.size(); ++iMap) {
+-	e.getByLabel(isolationValueMapNeutralLabels_[iMap], isoMapsNeutral[iMap]);
+-      }
+-
 -      edm::Handle<IsoMap> dBetaH;
 -      if(doDeltaBetaCorrection_) {
 -	e.getByLabel(deltaBetaIsolationValueMap_, dBetaH);
 -      }
++    private:
++      std::vector<edm::InputTag> isolationValueMapChargedLabels_;
++      std::vector<edm::InputTag> isolationValueMapNeutralLabels_;
++      bool                       doDeltaBetaCorrection_;
++      edm::InputTag              deltaBetaIsolationValueMap_;
++      double                     deltaBetaFactor_;
++      bool                       doEffectiveAreaCorrection_;
++      edm::InputTag              rho_;
++      edm::InputTag              effectiveAreas_;
++      bool                       isRelative_; 
++      double                     isolationCut_;
  
 -      unsigned key=0;
 -      for( collection::const_iterator pfc = hc->begin(); 
@@ -205,18 +224,7 @@ diff -u -p -r1.4 IsolatedPFCandidateSelectorDefinition.h
 -      }
 -    }
 -    
-+    private:
-+      std::vector<edm::InputTag> isolationValueMapChargedLabels_;
-+      std::vector<edm::InputTag> isolationValueMapNeutralLabels_;
-+      bool                       doDeltaBetaCorrection_;
-+      edm::InputTag              deltaBetaIsolationValueMap_;
-+      double                     deltaBetaFactor_;
-+      bool                       doEffectiveAreaCorrection_;
-+      edm::InputTag              rho_;
-+      edm::InputTag              effectiveAreas_;
-+      bool                       isRelative_; 
-+      double                     isolationCut_;
- 
+-
 -  private:
 -    std::vector<edm::InputTag> isolationValueMapChargedLabels_;
 -    std::vector<edm::InputTag> isolationValueMapNeutralLabels_;
@@ -228,47 +236,10 @@ diff -u -p -r1.4 IsolatedPFCandidateSelectorDefinition.h
    };
  
  }
-Index: CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py
-===================================================================
-RCS file: /cvs/CMSSW/CMSSW/CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py,v
-retrieving revision 1.4
-diff -u -p -r1.4 pfIsolatedElectrons_cfi.py
---- CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py	20 Mar 2012 09:44:54 -0000	1.4
-+++ CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py	22 Nov 2012 09:48:49 -0000
-@@ -13,6 +13,9 @@ pfIsolatedElectrons  = cms.EDFilter(
-     doDeltaBetaCorrection = cms.bool(False),
-     deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU04PFId"),
-     deltaBetaFactor = cms.double(-0.5),    
-+    doEffectiveAreaCorrection = cms.bool(False),
-+    rho = cms.InputTag("kt6PFJets", "rho"),
-+    effectiveAreas = cms.InputTag("elEffectiveAreas03"),
-     ## if True isolation is relative to pT
-     isRelative = cms.bool(True),
-     isolationCut = cms.double(0.2)
-Index: CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py
-===================================================================
-RCS file: /cvs/CMSSW/CMSSW/CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py,v
-retrieving revision 1.5
-diff -u -p -r1.5 pfIsolatedMuons_cfi.py
---- CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py	29 Sep 2011 12:58:31 -0000	1.5
-+++ CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py	22 Nov 2012 09:48:49 -0000
-@@ -14,6 +14,9 @@ pfIsolatedMuons  = cms.EDFilter(
-     doDeltaBetaCorrection = cms.bool(False),
-     deltaBetaIsolationValueMap = cms.InputTag("muPFIsoValuePU04"),
-     deltaBetaFactor = cms.double(-0.5),
-+    doEffectiveAreaCorrection = cms.bool(False),
-+    rho = cms.InputTag("kt6PFJets", "rho"),
-+    effectiveAreas = cms.InputTag("muEffectiveAreas"),
-     ## if True isolation is relative to pT
-     isRelative = cms.bool(True),
-     ## if True all isoValues are combined (summed)
-Index: CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
-===================================================================
-RCS file: /cvs/CMSSW/CMSSW/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py,v
-retrieving revision 1.4
-diff -u -p -r1.4 pfIsolatedPhotons_cfi.py
---- CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py	20 Mar 2012 09:44:54 -0000	1.4
-+++ CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py	22 Nov 2012 09:48:49 -0000
+diff --git a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
+index 0ee2765..5b776d1 100644
+--- a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
++++ b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
 @@ -13,6 +13,9 @@ pfIsolatedPhotons  = cms.EDFilter(
      doDeltaBetaCorrection = cms.bool(False),
      deltaBetaIsolationValueMap = cms.InputTag("phPFIsoValuePU04PFId"),
@@ -279,3 +250,6 @@ diff -u -p -r1.4 pfIsolatedPhotons_cfi.py
      ## if True isolation is relative to pT
      isRelative = cms.bool(True),
      isolationCut = cms.double(999) 
+-- 
+1.8.3.1
+
