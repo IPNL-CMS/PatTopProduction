@@ -1,0 +1,23 @@
+{
+  "/MuHad/Run2012A-22Jan2013-v1/AOD": {
+    "name": "MuHad_Run2012A-22Jan2013",
+    "json_files": "",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [190456, 193621]
+  },
+  "/SingleMu/Run2012B-TOPMuPlusJets-22Jan2013-v1/AOD": {
+    "name": "SingleMu_Run2012B-TOPMuPlusJets-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [193833, 196531]
+  },
+  "/SingleMu/Run2012C-TOPMuPlusJets-22Jan2013-v1/AOD": {
+    "name": "SingleMu_Run2012C-TOPMuPlusJets-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [198022, 203742]
+  },
+  "/SingleMu/Run2012D-TOPMuPlusJets-22Jan2013-v1/AOD": {
+    "name": "SingleMu_Run2012D-TOPMuPlusJets-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [203768, 208686]
+  }
+}
