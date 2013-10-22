@@ -1,0 +1,22 @@
+{
+  "/ElectronHad/Run2012A-22Jan2013-v1/AOD": {
+    "name": "ElectronHad_Run2012A-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [190456, 193621]
+  },
+  "/SingleElectron/Run2012B-TOPElePlusJets-22Jan2013-v1/AOD": {
+    "name": "SingleElectron_Run2012B-TOPElePlusJets-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [193833, 196531]
+  },
+  "/SingleElectron/Run2012C-TOPElePlusJets-22Jan2013-v1/AOD": {
+    "name": "SingleElectron_Run2012C-TOPElePlusJets-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [198022, 203742]
+  },
+  "/SingleElectron/Run2012D-TOPElePlusJets-22Jan2013-v1/AOD": {
+    "name": "SingleElectron_Run2012D-TOPElePlusJets-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [203768, 208686]
+  }
+}

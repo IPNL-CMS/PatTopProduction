@@ -1,0 +1,14 @@
+{
+    "/ZPrimeToTTJets_M1000GeV_W100GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Zprime_1000_Large", 
+    "/ZPrimeToTTJets_M1000GeV_W100GeV_TuneZ2star_8TeV_ext-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM": "Zprime_1000_Large_ext", 
+    "/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Zprime_1250_Large", 
+    "/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV_ext-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM": "Zprime_1250_Large_ext", 
+    "/ZPrimeToTTJets_M1500GeV_W150GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Zprime_1500_Large", 
+    "/ZPrimeToTTJets_M1500GeV_W150GeV_TuneZ2star_8TeV_ext-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM": "Zprime_1500_Large_ext", 
+    "/ZPrimeToTTJets_M2000GeV_W200GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Zprime_2000_Large", 
+    "/ZPrimeToTTJets_M2000GeV_W200GeV_TuneZ2star_8TeV_ext-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM": "Zprime_2000_Large_ext", 
+    "/ZPrimeToTTJets_M500GeV_W50GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Zprime_500_Large", 
+    "/ZPrimeToTTJets_M500GeV_W50GeV_TuneZ2star_8TeV_ext-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM": "Zprime_500_Large_ext", 
+    "/ZPrimeToTTJets_M750GeV_W75GeV_TuneZ2star_8TeV-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "Zprime_750_Large", 
+    "/ZPrimeToTTJets_M750GeV_W75GeV_TuneZ2star_8TeV_ext-madgraph-tauola/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM": "Zprime_750_Large_ext"
+}
