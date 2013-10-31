@@ -1,0 +1,9 @@
+<library name="PatTopProductionToolsPlugins" file="*.cc">
+  <use name="FWCore/Framework"/>
+  <use name="FWCore/ParameterSet"/>
+  <use name="FWCore/MessageLogger"/>
+  <use name="DataFormats/EgammaCandidates"/>
+  <use name="DataFormats/ParticleFlowCandidate"/>
+  <use name="CommonTools/Utils"/>
+  <use name="HLTrigger/HLTcore"/>
+</library>

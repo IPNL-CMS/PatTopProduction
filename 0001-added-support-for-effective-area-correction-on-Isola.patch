@@ -1,0 +1,285 @@
+From 389b1100cbb92c9e7a44386a367ab7e707b10d21 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=A9bastien=20Brochet?= <s.brochet@ipnl.in2p3.fr>
+Date: Thu, 31 Oct 2013 16:57:09 +0100
+Subject: [PATCH] added support for effective area correction on
+ IsolatedPFCandidateSelector
+
+---
+ .../IsolatedPFCandidateSelectorDefinition.h        | 212 ++++++++++++---------
+ .../python/Isolation/pfIsolatedElectrons_cfi.py    |   3 +
+ .../python/Isolation/pfIsolatedMuons_cfi.py        |   3 +
+ .../python/Isolation/pfIsolatedPhotons_cfi.py      |   3 +
+ 4 files changed, 128 insertions(+), 93 deletions(-)
+
+diff --git a/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h b/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
+index 7aaa905..88e6ca2 100644
+--- a/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
++++ b/CommonTools/ParticleFlow/interface/IsolatedPFCandidateSelectorDefinition.h
+@@ -11,103 +11,129 @@ namespace pf2pat {
+ 
+   class IsolatedPFCandidateSelectorDefinition : public PFCandidateSelectorDefinition {
+ 
+-  public:
+-    typedef edm::ValueMap<double> IsoMap;
+-
+-    IsolatedPFCandidateSelectorDefinition ( const edm::ParameterSet & cfg ) :
+-      isolationValueMapChargedLabels_(cfg.getParameter< std::vector<edm::InputTag> >("isolationValueMapsCharged") ),
+-      isolationValueMapNeutralLabels_(cfg.getParameter< std::vector<edm::InputTag> >("isolationValueMapsNeutral") ),
+-      doDeltaBetaCorrection_(cfg.getParameter<bool>("doDeltaBetaCorrection")),
+-      deltaBetaIsolationValueMap_(cfg.getParameter< edm::InputTag >("deltaBetaIsolationValueMap") ),
+-      deltaBetaFactor_(cfg.getParameter<double>("deltaBetaFactor")),
+-      isRelative_(cfg.getParameter<bool>("isRelative")),
+-      isolationCut_(cfg.getParameter<double>("isolationCut")) {}
+-    
+-
+-
+-    void select( const HandleToCollection & hc, 
+-		 const edm::EventBase & e,
+-		 const edm::EventSetup& s) {
+-      selected_.clear();
+-    
+-
+-      // read all charged isolation value maps
+-      std::vector< edm::Handle<IsoMap> > 
+-	isoMapsCharged(isolationValueMapChargedLabels_.size());
+-      for(unsigned iMap = 0; iMap<isolationValueMapChargedLabels_.size(); ++iMap) {
+-	e.getByLabel(isolationValueMapChargedLabels_[iMap], isoMapsCharged[iMap]);
++    public:
++      typedef edm::ValueMap<double> IsoMap;
++      typedef edm::ValueMap<double> EffectiveAreaMap;
++
++      IsolatedPFCandidateSelectorDefinition ( const edm::ParameterSet & cfg ) :
++        isolationValueMapChargedLabels_(cfg.getParameter< std::vector<edm::InputTag> >("isolationValueMapsCharged") ),
++        isolationValueMapNeutralLabels_(cfg.getParameter< std::vector<edm::InputTag> >("isolationValueMapsNeutral") ),
++        doDeltaBetaCorrection_(cfg.getParameter<bool>("doDeltaBetaCorrection")),
++        deltaBetaIsolationValueMap_(cfg.getParameter< edm::InputTag >("deltaBetaIsolationValueMap") ),
++        deltaBetaFactor_(cfg.getParameter<double>("deltaBetaFactor")),
++        doEffectiveAreaCorrection_(cfg.getParameter<bool>("doEffectiveAreaCorrection")),
++        rho_(cfg.getParameter<edm::InputTag>("rho")),
++        effectiveAreas_(cfg.getParameter<edm::InputTag>("effectiveAreas")),
++        isRelative_(cfg.getParameter<bool>("isRelative")),
++        isolationCut_(cfg.getParameter<double>("isolationCut")) {
++          if (doEffectiveAreaCorrection_ && doDeltaBetaCorrection_) {
++            throw cms::Exception("IsolatedPFCandidateSelectorDefinition") << "doEffectiveAreaCorrection and doDeltaBetaCorrection are mutually excluded. Please choose!" << std::endl;
++          }
++        }
++
++
++
++      void select( const HandleToCollection & hc, 
++          const edm::EventBase & e,
++          const edm::EventSetup& s) {
++        selected_.clear();
++
++
++        // read all charged isolation value maps
++        std::vector< edm::Handle<IsoMap> > 
++          isoMapsCharged(isolationValueMapChargedLabels_.size());
++        for(unsigned iMap = 0; iMap<isolationValueMapChargedLabels_.size(); ++iMap) {
++          e.getByLabel(isolationValueMapChargedLabels_[iMap], isoMapsCharged[iMap]);
++        }
++
++
++        // read all neutral isolation value maps
++        std::vector< edm::Handle<IsoMap> > 
++          isoMapsNeutral(isolationValueMapNeutralLabels_.size());
++        for(unsigned iMap = 0; iMap<isolationValueMapNeutralLabels_.size(); ++iMap) {
++          e.getByLabel(isolationValueMapNeutralLabels_[iMap], isoMapsNeutral[iMap]);
++        }
++
++        edm::Handle<IsoMap> dBetaH;
++        if(doDeltaBetaCorrection_) {
++          e.getByLabel(deltaBetaIsolationValueMap_, dBetaH);
++        }
++
++        edm::Handle<double> rhoHandle;
++        edm::Handle<EffectiveAreaMap> effectiveAreasHandle;
++
++        if (doEffectiveAreaCorrection_) {
++          e.getByLabel(rho_, rhoHandle);
++          e.getByLabel(effectiveAreas_, effectiveAreasHandle);
++        }
++
++        unsigned key=0;
++        for( collection::const_iterator pfc = hc->begin(); 
++            pfc != hc->end(); ++pfc, ++key) {
++          reco::PFCandidateRef candidate(hc,key);
++
++          bool passed = true;
++          double isoSumCharged=0.0;
++          double isoSumNeutral=0.0;
++
++          for(unsigned iMap = 0; iMap<isoMapsCharged.size(); ++iMap) {
++            const IsoMap & isoMap = *(isoMapsCharged[iMap]);
++            double val = isoMap[candidate];
++            isoSumCharged+=val;
++          }
++
++          for(unsigned iMap = 0; iMap<isoMapsNeutral.size(); ++iMap) {
++            const IsoMap & isoMap = *(isoMapsNeutral[iMap]);
++            double val = isoMap[candidate];
++            isoSumNeutral+=val;
++          }
++
++
++          if ( doDeltaBetaCorrection_ ) {
++            const IsoMap& isoMap = *dBetaH;
++            double dBetaVal = isoMap[candidate];
++            double dBetaCorIsoSumNeutral = isoSumNeutral + deltaBetaFactor_*dBetaVal; 
++            isoSumNeutral = dBetaCorIsoSumNeutral>0 ? dBetaCorIsoSumNeutral : 0; //follow muon POG definition in 2012
++          } else if (doEffectiveAreaCorrection_) {
++            const double rho = *rhoHandle;
++            const EffectiveAreaMap effectiveAreas = *effectiveAreasHandle;
++            const double effectiveArea = effectiveAreas[candidate];
++
++            isoSumNeutral = std::max(0.0, isoSumNeutral - rho * effectiveArea);
++          }
++
++          double isoSum=isoSumCharged+isoSumNeutral;
++
++          if( isRelative_ ) {
++            isoSum /= candidate->pt();
++          }
++
++          if ( isoSum>isolationCut_ ) {
++            passed = false;
++          }
++
++          if(passed) {
++            // passed all cuts, selected
++            selected_.push_back( reco::PFCandidate(*pfc) );
++            reco::PFCandidatePtr ptrToMother( hc, key );
++            selected_.back().setSourceCandidatePtr( ptrToMother );
++          }
++        }
+       }
+ 
+ 
+-      // read all neutral isolation value maps
+-      std::vector< edm::Handle<IsoMap> > 
+-	isoMapsNeutral(isolationValueMapNeutralLabels_.size());
+-      for(unsigned iMap = 0; iMap<isolationValueMapNeutralLabels_.size(); ++iMap) {
+-	e.getByLabel(isolationValueMapNeutralLabels_[iMap], isoMapsNeutral[iMap]);
+-      }
+-
+-      edm::Handle<IsoMap> dBetaH;
+-      if(doDeltaBetaCorrection_) {
+-	e.getByLabel(deltaBetaIsolationValueMap_, dBetaH);
+-      }
++    private:
++      std::vector<edm::InputTag> isolationValueMapChargedLabels_;
++      std::vector<edm::InputTag> isolationValueMapNeutralLabels_;
++      bool                       doDeltaBetaCorrection_;
++      edm::InputTag              deltaBetaIsolationValueMap_;
++      double                     deltaBetaFactor_;
++      bool                       doEffectiveAreaCorrection_;
++      edm::InputTag              rho_;
++      edm::InputTag              effectiveAreas_;
++      bool                       isRelative_; 
++      double                     isolationCut_;
+ 
+-      unsigned key=0;
+-      for( collection::const_iterator pfc = hc->begin(); 
+-	   pfc != hc->end(); ++pfc, ++key) {
+-	reco::PFCandidateRef candidate(hc,key);
+-
+-	bool passed = true;
+-	double isoSumCharged=0.0;
+-	double isoSumNeutral=0.0;
+-
+-	for(unsigned iMap = 0; iMap<isoMapsCharged.size(); ++iMap) {
+-	  const IsoMap & isoMap = *(isoMapsCharged[iMap]);
+-	  double val = isoMap[candidate];
+-	  isoSumCharged+=val;
+-	}
+-
+-	for(unsigned iMap = 0; iMap<isoMapsNeutral.size(); ++iMap) {
+-	  const IsoMap & isoMap = *(isoMapsNeutral[iMap]);
+-	  double val = isoMap[candidate];
+-	  isoSumNeutral+=val;
+-	}
+-	
+-
+-	if ( doDeltaBetaCorrection_ ) {
+-	  const IsoMap& isoMap = *dBetaH;
+-	  double dBetaVal = isoMap[candidate];
+-	  double dBetaCorIsoSumNeutral = isoSumNeutral + deltaBetaFactor_*dBetaVal; 
+-	  isoSumNeutral = dBetaCorIsoSumNeutral>0 ? dBetaCorIsoSumNeutral : 0; //follow muon POG definition in 2012
+-	}
+-
+-	double isoSum=isoSumCharged+isoSumNeutral;
+-
+-	if( isRelative_ ) {
+-	  isoSum /= candidate->pt();
+-	}
+-
+-	if ( isoSum>isolationCut_ ) {
+-	  passed = false;
+-	}
+-
+-	if(passed) {
+-	  // passed all cuts, selected
+-	  selected_.push_back( reco::PFCandidate(*pfc) );
+-	  reco::PFCandidatePtr ptrToMother( hc, key );
+-	  selected_.back().setSourceCandidatePtr( ptrToMother );
+-	}
+-      }
+-    }
+-    
+-
+-  private:
+-    std::vector<edm::InputTag> isolationValueMapChargedLabels_;
+-    std::vector<edm::InputTag> isolationValueMapNeutralLabels_;
+-    bool                       doDeltaBetaCorrection_;
+-    edm::InputTag              deltaBetaIsolationValueMap_;
+-    double                     deltaBetaFactor_;
+-    bool                       isRelative_; 
+-    double                     isolationCut_;
+   };
+ 
+ }
+diff --git a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py
+index a3c2e4b..5d9d210 100644
+--- a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py
++++ b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedElectrons_cfi.py
+@@ -13,6 +13,9 @@ pfIsolatedElectrons  = cms.EDFilter(
+     doDeltaBetaCorrection = cms.bool(False),
+     deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU04PFId"),
+     deltaBetaFactor = cms.double(-0.5),    
++    doEffectiveAreaCorrection = cms.bool(False),
++    rho = cms.InputTag("kt6PFJets", "rho"),
++    effectiveAreas = cms.InputTag("elEffectiveAreas03"),
+     ## if True isolation is relative to pT
+     isRelative = cms.bool(True),
+     isolationCut = cms.double(0.2)
+diff --git a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py
+index 70f2346..940d049 100644
+--- a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py
++++ b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedMuons_cfi.py
+@@ -14,6 +14,9 @@ pfIsolatedMuons  = cms.EDFilter(
+     doDeltaBetaCorrection = cms.bool(False),
+     deltaBetaIsolationValueMap = cms.InputTag("muPFIsoValuePU04"),
+     deltaBetaFactor = cms.double(-0.5),
++    doEffectiveAreaCorrection = cms.bool(False),
++    rho = cms.InputTag("kt6PFJets", "rho"),
++    effectiveAreas = cms.InputTag("muEffectiveAreas"),
+     ## if True isolation is relative to pT
+     isRelative = cms.bool(True),
+     ## if True all isoValues are combined (summed)
+diff --git a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
+index 0ee2765..5b776d1 100644
+--- a/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
++++ b/CommonTools/ParticleFlow/python/Isolation/pfIsolatedPhotons_cfi.py
+@@ -13,6 +13,9 @@ pfIsolatedPhotons  = cms.EDFilter(
+     doDeltaBetaCorrection = cms.bool(False),
+     deltaBetaIsolationValueMap = cms.InputTag("phPFIsoValuePU04PFId"),
+     deltaBetaFactor = cms.double(-0.5),    
++    doEffectiveAreaCorrection = cms.bool(False),
++    rho = cms.InputTag("kt6PFJets", "rho"),
++    effectiveAreas = cms.InputTag("phEffectiveAreas"),
+     ## if True isolation is relative to pT
+     isRelative = cms.bool(True),
+     isolationCut = cms.double(999) 
+-- 
+1.8.3.1
+
