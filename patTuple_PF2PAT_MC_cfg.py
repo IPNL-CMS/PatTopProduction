@@ -70,7 +70,7 @@ process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
 #process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_data
 
 # use for Spring'12 MC
-process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCvsNvtx_mc
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCDvsNvtx_mc
 
 # CLone our Type 0 + Type I MET, and add Phi corrections
 setattr(process, 'patType0p1ShiftCorrCorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
@@ -145,7 +145,7 @@ process.pfElectronsPFlow.isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag
 # ... And for PAT
 adaptPFIsoElectrons(process, process.patElectronsPFlow, postfix, "03")
 
-process.load('EGamma.EGammaAnalysisTools.electronIdMVAProducer_cfi') 
+process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
 process.eidMVASequence = cms.Sequence(process.mvaTrigV0 + process.mvaNonTrigV0)
 #Electron ID
 process.patElectronsPFlow.electronIDSources.mvaTrigV0    = cms.InputTag("mvaTrigV0")
@@ -172,7 +172,7 @@ process.kt6PFJetsForIsolation = kt4PFJets.clone(rParam = 0.6, doRhoFastjet = Tru
 process.kt6PFJetsForIsolation.Rho_EtaMax = cms.double(2.5)
 
 # Compute effective areas for correcting isolation
-process.load("EGamma.EGammaAnalysisTools.electronEffectiveAreaProducer_cfi")
+process.load("PatTopProduction.Tools.electronEffectiveAreaProducer_cfi")
 
 process.elEffectiveAreas03.src    = cms.InputTag("pfSelectedElectrons" + postfix)
 process.elEffectiveAreas03.target = cms.string("EAFall11MC")

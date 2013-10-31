@@ -79,7 +79,7 @@ process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
 process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
 
 # use for 2012 Data
-process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCvsNvtx_data
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCDvsNvtx_data
 
 # use for Spring'12 MC
 #process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_mc
@@ -157,7 +157,7 @@ process.pfElectronsPFlow.isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag
 # ... And for PAT
 adaptPFIsoElectrons(process, process.patElectronsPFlow, postfix, "03")
 
-process.load('EGamma.EGammaAnalysisTools.electronIdMVAProducer_cfi') 
+process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
 process.eidMVASequence = cms.Sequence(process.mvaTrigV0 + process.mvaNonTrigV0)
 #Electron ID
 process.patElectronsPFlow.electronIDSources.mvaTrigV0    = cms.InputTag("mvaTrigV0")
@@ -179,7 +179,7 @@ process.patConversionsLoose = cms.EDProducer("PATConversionProducer",
 )
 
 # Compute effective areas for correcting isolation
-process.load("EGamma.EGammaAnalysisTools.electronEffectiveAreaProducer_cfi")
+process.load("PatTopProduction.Tools.electronEffectiveAreaProducer_cfi")
 
 process.elEffectiveAreas03.src = cms.InputTag("pfSelectedElectrons" + postfix)
 
