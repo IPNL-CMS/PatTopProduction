@@ -79,7 +79,7 @@ process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
 process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
 
 # use for 2012 Data
-process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCvsNvtx_data
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCDvsNvtx_data
 
 # use for Spring'12 MC
 #process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_mc

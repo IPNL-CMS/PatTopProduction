@@ -70,7 +70,7 @@ process.load("JetMETCorrections.Type1MET.pfMETsysShiftCorrections_cfi")
 #process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runAplusBvsNvtx_data
 
 # use for Spring'12 MC
-process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCvsNvtx_mc
+process.pfMEtSysShiftCorr.parameter = process.pfMEtSysShiftCorrParameters_2012runABCDvsNvtx_mc
 
 # CLone our Type 0 + Type I MET, and add Phi corrections
 setattr(process, 'patType0p1ShiftCorrCorrectedPFMet' + postfix, getattr(process, 'patType1CorrectedPFMet' + postfix).clone(
