@@ -36,6 +36,7 @@ postfix = "PFlow"
 jetAlgo = "AK5"
 # Jet corrections when using CHS (L2L3Residual IS mandatory on data)
 jetCorrections = ('AK5PFchs', ['L1FastJet','L2Relative','L3Absolute', 'L2L3Residual'] )
+
 # Jet corrections when NOT using CHS
 #jetCorrections = ('AK5PF', ['L1FastJet','L2Relative','L3Absolute', 'L2L3Residual'] )
 
@@ -201,6 +202,7 @@ getattr(process,"pfNoJet"+postfix).enable = True
 # jet customization
 process.selectedPatJetsPFlow.cut = 'pt > 10. & abs(eta) < 3.'
 
+
 # muons customization
 # https://twiki.cern.ch/twiki/bin/view/CMS/TWikiTopRefEventSel#Muons
 process.patMuonsPFlow.usePV = False
@@ -237,12 +239,19 @@ process.selectedPatElectronsLoosePFlow = process.selectedPatElectronsPFlow.clone
 adaptPFIsoElectrons(process, process.patElectronsLoosePFlow, postfix, "03")
 process.patDefaultSequencePFlow += (process.patElectronsLoosePFlow * process.selectedPatElectronsLoosePFlow)
 
+removeSpecificPATObjects(process, names = ['Electrons', 'Muons', 'Taus', 'Jets', 'METs'])
+
+process.photonPFIsolation = cms.EDProducer("PhotonIsolationProducer",
+       src = cms.InputTag("selectedPatPhotons")
+       )
 
 process.patSeq = cms.Sequence(
     process.goodOfflinePrimaryVertices +
     getattr(process, "patPF2PATSequence" + postfix) +
     process.patConversions +
-    process.patConversionsLoose
+    process.patConversionsLoose +
+    process.patDefaultSequence +
+    process.photonPFIsolation
     )
 
 if runOnMC == False:
@@ -268,6 +277,11 @@ process.load('RecoMET.METFilters.metFilters_cff')
 # HCAL Filter : only valid if running on Winter13 rereco
 process.load("EventFilter.HcalRawToDigi.hcallaserFilterFromTriggerResult_cff")
 
+# load the PU JetID sequence
+process.load("CMGTools.External.pujetidsequence_cff")
+process.puJetId.jets =  cms.InputTag("selectedPatJetsPFlow")
+process.puJetMva.jets =  cms.InputTag("selectedPatJetsPFlow")
+
 process.filtersSeq = cms.Sequence(
    process.hcalfilter *
    process.primaryVertexFilter *
@@ -278,7 +292,8 @@ process.filtersSeq = cms.Sequence(
 # Let it run
 process.p = cms.Path(
     process.filtersSeq +
-    process.patSeq
+    process.patSeq *
+    process.puJetIdSqeuence
     )
 
 # Add PF2PAT output to the created file
@@ -300,8 +315,16 @@ process.out.outputCommands += [
 
   # For isolations and conversions vetoes
   'keep *_gsfElectron*_*_*',
-  'keep *_offlineBeamSpot*_*_*'
+  'keep *_offlineBeamSpot*_*_*',
+
+  # For pile-up jet ID
+  'keep *_puJetId_*_*', # input variables
+  'keep *_puJetMva_*_*', # final MVAs and working point flags
+
+  #photon isolation
+  'keep *_photonPFIsolation*_*_*'
   ]
+
 
 ## ------------------------------------------------------
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
@@ -309,13 +332,15 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = cms.string("%s::All" % options.globalTag)
 process.source.fileNames = [ 
     #'file:input_data.root'
+    '/store/user/sbrochet/../../data/Run2012B/SingleMu/AOD/TOPMuPlusJets-22Jan2013-v1/30000/E20BB339-6572-E211-8767-001E4F3F28D0.root '
     #'/store/data/Run2012C/SingleMu/AOD/TOPMuPlusJets-24Aug2012-v1/00000/C8186FFC-2BEF-E111-80FB-001EC9D8D993.root'
-    '/store/data/Run2012B/SingleMu/AOD/TOPMuPlusJets-22Jan2013-v1/20000/FA21ADAF-AE71-E211-83D4-90E6BA19A243.root'
+    #'/store/data/Run2012B/SingleMu/AOD/TOPMuPlusJets-22Jan2013-v1/20000/FA21ADAF-AE71-E211-83D4-90E6BA19A243.root'
+    #'file:/scratch/brochet/Run2012B/SingleMu/AOD/F447BAB6-AD70-E211-BA4A-002590747D92.root'
     ]
 
-process.out.fileName = cms.untracked.string('patTuple.root')
+process.out.fileName = cms.untracked.string('patTupleData.root')
 
-process.maxEvents.input = -1
+process.maxEvents.input = 50
 
 process.options.wantSummary = False
 

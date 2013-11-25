@@ -236,12 +236,20 @@ process.selectedPatElectronsLoosePFlow = process.selectedPatElectronsPFlow.clone
 adaptPFIsoElectrons(process, process.patElectronsLoosePFlow, postfix, "03")
 process.patDefaultSequencePFlow += (process.patElectronsLoosePFlow * process.selectedPatElectronsLoosePFlow)
 
+removeSpecificPATObjects(process, names = ['Electrons', 'Muons', 'Taus', 'Jets', 'METs'])
+
+process.photonPFIsolation = cms.EDProducer("PhotonIsolationProducer",
+       src = cms.InputTag("selectedPatPhotons")
+       )
+
 process.patSeq = cms.Sequence(
     process.goodOfflinePrimaryVertices +
     process.kt6PFJetsForIsolation +
     getattr(process, "patPF2PATSequence" + postfix) +
     process.patConversions +
-    process.patConversionsLoose
+    process.patConversionsLoose +
+    process.patDefaultSequence +
+    process.photonPFIsolation
     )
 
 if runOnMC == False:
@@ -264,6 +272,11 @@ process.scrapingVeto = cms.EDFilter("FilterOutScraping",
 # MET Filters
 process.load('RecoMET.METFilters.metFilters_cff')
 
+# load the PU JetID sequence
+process.load("CMGTools.External.pujetidsequence_cff")
+process.puJetId.jets =  cms.InputTag("selectedPatJetsPFlow")
+process.puJetMva.jets =  cms.InputTag("selectedPatJetsPFlow")
+
 process.filtersSeq = cms.Sequence(
    process.primaryVertexFilter *
    #process.scrapingVeto *
@@ -273,7 +286,8 @@ process.filtersSeq = cms.Sequence(
 # Let it run
 process.p = cms.Path(
     process.filtersSeq +
-    process.patSeq
+    process.patSeq *
+    process.puJetIdSqeuence
     )
 
 # Add PF2PAT output to the created file
@@ -297,7 +311,14 @@ process.out.outputCommands += [
 
   # For isolations and conversions vetoes
   'keep *_gsfElectron*_*_*',
-  'keep *_offlineBeamSpot*_*_*'
+  'keep *_offlineBeamSpot*_*_*',
+
+  # For pile-up jet ID
+  'keep *_puJetId_*_*', # input variables
+  'keep *_puJetMva_*_*', # final MVAs and working point flags
+
+  #photon isolation
+  'keep *_photonPFIsolation*_*_*'
   ]
 
 ## ------------------------------------------------------
@@ -312,7 +333,10 @@ process.GlobalTag.globaltag = cms.string('START53_V21::All')
 
 process.source.fileNames = [
   #'file:input_mc.root'
-  '/store/mc/Summer12_DR53X/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/7E5CC86C-7703-E211-9542-00215E221098.root'
+  'file:/gridgroup/cms/brochet/MC_QCD_HT-250To500.root'
+  #'/store/user/sbrochet/../../mc/Summer12_DR53X/TTWJets_8TeV-madgraph/AODSIM/PU_S10_START53_V7A-v1/0000/A4438E84-97DA-E111-BF02-002481E101DA.root'
+  #'/store/mc/Summer12_DR53X/ZPrimeToTTJets_M1250GeV_W125GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/7E5CC86C-7703-E211-9542-00215E221098.root'
+  #'file:/scratch/brochet/MC/TTJets_SemiLeptMGDecays_8TeV-madgraph/00188A34-1224-E211-833B-003048D4612C.root'
   ]
 
 process.out.fileName = cms.untracked.string('patTuple.root')
