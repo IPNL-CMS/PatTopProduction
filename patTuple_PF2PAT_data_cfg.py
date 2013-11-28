@@ -322,6 +322,7 @@ process.out.outputCommands += [
   'keep *_puJetMva_*_*', # final MVAs and working point flags
 
   #photon isolation
+  'keep *_photonCore_*_*',
   'keep *_photonPFIsolation*_*_*'
   ]
 
