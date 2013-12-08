@@ -7,7 +7,7 @@ parser = OptionParser()
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
 (option, args) = parser.parse_args()
 
-global_json = "Cert_190456-203742_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
+global_json = "Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
 
 # Load each json files and build dataset array
 datasets = {}
