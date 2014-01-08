@@ -1,0 +1,6 @@
+{
+  "/QCD_pt15to30_bEnriched_MuEnrichedPt14_TuneZ2star_8TeV-pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "QCD_pt15to30_bEnriched_MuEnrichedPt14",
+  "/QCD_pt30to50_bEnriched_MuEnrichedPt14_TuneZ2star_8TeV-pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "QCD_pt30to50_bEnriched_MuEnrichedPt14",
+  "/QCD_pt50to150_bEnriched_MuEnrichedPt14_TuneZ2star_8TeV-pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "QCD_pt50to150_bEnriched_MuEnrichedPt14",
+  "/QCD_pt150_bEnriched_MuEnrichedPt14_TuneZ2star_8TeV-pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM": "QCD_pt150_bEnriched_MuEnrichedPt14"
+}
