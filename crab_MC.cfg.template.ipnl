@@ -1,10 +1,11 @@
 [CRAB]
 jobtype = cmssw
-scheduler = glite
+scheduler = remoteGlideIn
 use_server = 0
 
 [CMSSW]
 
+dbs_url = @dbs_url@
 datasetpath = @datasetname@
 pset = patTuple_PF2PAT_MC_cfg.py
 
