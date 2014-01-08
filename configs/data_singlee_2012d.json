@@ -1,0 +1,7 @@
+{
+  "/SingleElectron/Run2012D-22Jan2013-v1/AOD": {
+    "name": "SingleElectron_Run2012D-22Jan2013",
+    "global_tag": "FT_53_V21_AN3",
+    "run_range": [203768, 208686]
+  }
+}
