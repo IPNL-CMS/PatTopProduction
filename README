@@ -4,11 +4,13 @@ cmsrel CMSSW_5_3_9_patch2
 cd CMSSW_5_3_9_patch2/src/
 cmsenv
 
+export CVSROOT=":ext:<cern-user-account>@lxplus5.cern.ch:/afs/cern.ch/user/c/cvscmssw/public/CMSSW"
+
 # PAT
 addpkg DataFormats/PatCandidates   V06-05-06-10
 addpkg PhysicsTools/PatAlgos       V08-09-57
 addpkg PhysicsTools/PatUtils       V03-09-28
-addpkg DataFormats/CaloRecHit      V02-05-11
+addpkg DataFormats/CaloRecHit      V02-05-13
 addpkg DataFormats/StdDictionaries V00-02-15
 addpkg FWCore/GuiBrowsers          V00-00-70
 addpkg RecoMET/METProducers        V03-03-12-02
