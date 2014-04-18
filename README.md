@@ -44,6 +44,10 @@ Setup local area
 
     git cms-merge-topic -u TaiSakuma:53X-met-140217-01
 
+### PU Jet ID
+
+    git cms-merge-topic -u IPNL-CMS:53x_pujetid
+
 ### Final configuration
 
     git clone https://github.com/IPNL-CMS/PatTopProduction.git
