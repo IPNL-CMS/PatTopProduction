@@ -265,6 +265,16 @@ process.scrapingVeto = cms.EDFilter("FilterOutScraping",
 # MET Filters
 process.load('RecoMET.METFilters.metFilters_cff')
 
+# load the PU JetID sequence
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID
+process.load("CMGTools.External.pujetidsequence_cff")
+process.puJetIdChs.jets =  cms.InputTag("selectedPatJetsPFlow")
+process.puJetMvaChs.jets =  cms.InputTag("selectedPatJetsPFlow")
+# Use the correct path to load the PU Jet ID algo
+process.puJetMvaChs.algos[0].tmvaWeights = "CMGTools/External/data/TMVAClassificationCategory_JetID_53X_chs_Dec2012.weights.xml"
+process.puJetIdChs.vertexes =  cms.InputTag("goodOfflinePrimaryVertices")
+process.puJetMvaChs.vertexes =  cms.InputTag("goodOfflinePrimaryVertices")
+
 # HCAL Filter : only valid if running on Winter13 rereco
 process.load("EventFilter.HcalRawToDigi.hcallaserFilterFromTriggerResult_cff")
 
@@ -278,7 +288,8 @@ process.filtersSeq = cms.Sequence(
 # Let it run
 process.p = cms.Path(
     process.filtersSeq +
-    process.patSeq
+    process.patSeq +
+    process.puJetIdSqeuenceChs
     )
 
 # Add PF2PAT output to the created file
@@ -300,7 +311,11 @@ process.out.outputCommands += [
 
   # For isolations and conversions vetoes
   'keep *_gsfElectron*_*_*',
-  'keep *_offlineBeamSpot*_*_*'
+  'keep *_offlineBeamSpot*_*_*',
+
+  # For pile-up jet ID
+  'keep *_puJetId*_*_*', # input variables
+  'keep *_puJetMva*_*_*' # final MVAs and working point flags
   ]
 
 ## ------------------------------------------------------
