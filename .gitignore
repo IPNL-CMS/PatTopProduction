@@ -4,5 +4,6 @@
 *crab_MC*
 *.swp
 *.root
+crab.history
 */
 !/configs
