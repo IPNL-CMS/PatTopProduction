@@ -302,6 +302,12 @@ def createPATProcess(runOnMC, globalTag):
     process.puJetIdChs.vertexes =  cms.InputTag("goodOfflinePrimaryVertices")
     process.puJetMvaChs.vertexes =  cms.InputTag("goodOfflinePrimaryVertices")
 
+    # Quark / Gluon discriminator
+    process.load('QuarkGluonTagger.EightTeV.QGTagger_RecoJets_cff')
+    process.QGTagger.srcJets = cms.InputTag("selectedPatJetsPFlow")
+    process.QGTagger.isPatJet = cms.untracked.bool(True)
+    process.QGTagger.useCHS = cms.untracked.bool(True)
+
     if not runOnMC:
         # require physics declared
         process.load('HLTrigger.special.hltPhysicsDeclared_cfi')
@@ -335,7 +341,8 @@ def createPATProcess(runOnMC, globalTag):
     process.p = cms.Path(
         process.filtersSeq +
         process.patSeq +
-        process.puJetIdSqeuenceChs
+        process.puJetIdSqeuenceChs +
+        process.QuarkGluonTagger
         )
 
     # Add PF2PAT output to the created file
@@ -362,6 +369,9 @@ def createPATProcess(runOnMC, globalTag):
       # For pile-up jet ID
       'keep *_puJetId*_*_*', # input variables
       'keep *_puJetMva*_*_*', # final MVAs and working point flags
+
+      # Quark / Gluon discriminator
+      'keep *_QGTagger*_*_*',
       ]
 
     process.MessageLogger.cerr.FwkReport.reportEvery = 100
