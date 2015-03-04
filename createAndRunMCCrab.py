@@ -41,7 +41,7 @@ for dataset_path, dataset_name in datasets.items():
     publish_name = "%s_%s-v%d" % (dataset_name, d, version)
 
   ui_working_dir = ("crab_MC_%s") % (dataset_name)
-  output_file = "crab_MC_%s.cfg" % (dataset_name)
+  output_file = "crab_MC_%s.py" % (dataset_name)
 
   if options.create:
     print("Creating config file for '%s'" % (dataset_path))
@@ -54,7 +54,7 @@ for dataset_path, dataset_name in datasets.items():
     else:
         dbs_url = "http://cmsdbsprod.cern.ch/cms_dbs_prod_global/servlet/DBSServlet"
 
-    os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" -e \"s#@dbs_url@#%s#g\" crab_MC.cfg.template.ipnl > %s" % (dataset_path, ui_working_dir, publish_name, email, dbs_url, output_file))
+    os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" -e \"s#@dbs_url@#%s#g\" crab_MC_template.py > %s" % (dataset_path, ui_working_dir, publish_name, email, dbs_url, output_file))
 
 
   if options.run:
