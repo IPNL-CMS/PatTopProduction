@@ -25,12 +25,12 @@ def jetToolBox(process, postfix):
 
     # Quark / gluon tagger
     loadWithPostfix(process, 'RecoJets.JetProducers.QGTagger_cfi', postfix)
+    delattr(process, "QGTaggerMiniAOD" + postfix)
 
     # Customize to run on collections produced by PF2PAT
     applyPostfix(process, "QGTagger", postfix).srcJets = cms.InputTag("pfNoTauClonesPFlow")
 
-    # FIXME: Change label as soon as something is available for AK4
-    applyPostfix(process, "QGTagger", postfix).jetsLabel = cms.string('QGL_AK5PFchs')
+    applyPostfix(process, "QGTagger", postfix).jetsLabel = cms.string('QGL_AK4PFchs')
 
     applyPostfix(process, "patJets", postfix).userData.userFloats.src += ['QGTagger%s:qgLikelihood' % postfix]
 

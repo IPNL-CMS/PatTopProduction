@@ -69,8 +69,7 @@ def createPATProcess(runOnMC, globalTag):
             jetCorrections = jetCorrections
             )
 
-    # FIXME: Temporary fix to have AK5 payloads until the AK4 payloads are ready
-    getattr(process, "patJetCorrFactors%s" % postfix).payload = 'AK5PFchs'
+    getattr(process, "patJetCorrFactors%s" % postfix).payload = 'AK4PFchs'
 
     if not runOnMC:
         removeMCMatchingPF2PAT(process, ['All'])
@@ -160,8 +159,6 @@ def setupMisc(process, postfix):
 
     # Import reduce EGamma
     process.load('RecoEgamma.EgammaPhotonProducers.reducedEgamma_cfi')
-    # FIXME: This is needed only when processing AODSIM done in 7.0.X
-    process.reducedEgamma.singleConversions = cms.InputTag('gedPhotonCore')
 
     # Trigger
     from PhysicsTools.PatAlgos.tools.trigTools import switchOnTriggerStandAlone
@@ -362,6 +359,7 @@ def setupJets(process, postfix, runOnMC):
     applyPostfix(process, 'patJetsAK8', postfix).userData.userFloats.src = [] # start with empty list of user floats
     applyPostfix(process, 'selectedPatJetsAK8', postfix).cut = cms.string("pt > 100")
     applyPostfix(process, 'patJetGenJetMatchAK8', postfix).matched = 'slimmedGenJets%s' % postfix
+    applyPostfix(process, 'slimmedGenJets', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
 
     # Groom mass
     from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHSPruned, ak8PFJetsCHSFiltered, ak8PFJetsCHSTrimmed

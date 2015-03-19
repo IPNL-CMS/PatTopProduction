@@ -12,7 +12,6 @@ config.JobType.pluginName = "Analysis"
 config.JobType.psetName = "patTuple_PF2PAT_MC_cfg.py"
 config.JobType.pyCfgParams = []
 config.JobType.outputFiles = ['patTuple.root']
-config.JobType.eventsPerLumi = 100
 config.JobType.allowNonProductionCMSSW = True
 
 # Data section
