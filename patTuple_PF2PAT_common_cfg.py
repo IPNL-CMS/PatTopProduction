@@ -32,10 +32,8 @@ def createPATProcess(runOnMC, globalTag):
     from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
     process.out = cms.OutputModule("PoolOutputModule",
             fileName = cms.untracked.string('patTuple.root'),
-            ## save only events passing the full path
-            #SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
-            ## save PAT output; you need a '*' to unpack the list of commands
-            ## 'patEventContent'
+            # save only events passing the full path
+            SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('p')),
             outputCommands = cms.untracked.vstring('drop *', *patEventContentNoCleaning )
             )
 
