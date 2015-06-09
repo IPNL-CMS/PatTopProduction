@@ -363,6 +363,40 @@ def setupJets(process, postfix, runOnMC):
     applyPostfix(process, 'patJets', postfix).tagInfoSources = cms.VInputTag(cms.InputTag("secondaryVertexTagInfosEI"))
     applyPostfix(process, 'patJets', postfix).addTagInfos = cms.bool(True)
 
+    # Puppi jets
+    process.load('RecoJets.JetProducers.ak4PFJetsPuppi_cfi')
+    process.ak4PFJetsPuppi.doAreaFastjet = True
+
+    from RecoJets.JetAssociationProducers.j2tParametersVX_cfi import j2tParametersVX
+    process.ak4PFJetsPuppiTracksAssociatorAtVertex = cms.EDProducer("JetTracksAssociatorAtVertex",
+        j2tParametersVX,
+        jets = cms.InputTag("ak4PFJetsPuppi")
+    )
+    process.patJetPuppiCharge = cms.EDProducer("JetChargeProducer",
+        src = cms.InputTag("ak4PFJetsPuppiTracksAssociatorAtVertex"),
+        var = cms.string('Pt'),
+        exp = cms.double(1.0)
+    )
+
+    # FIXME: Use PUPPI corrections when available
+    if not runOnMC:
+        jetCorrections = ('AK4PFchs', ['L2Relative', 'L3Absolute', 'L2L3Residual'], 'None')
+    else:
+        jetCorrections = ('AK4PFchs', ['L2Relative', 'L3Absolute'], 'None')
+
+    from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection
+    addJetCollection(process, postfix="", labelName='Puppi', jetSource=cms.InputTag('ak4PFJetsPuppi'),
+            jetCorrections=jetCorrections, algo= 'AK', rParam = 0.4,
+            btagDiscriminators = map(lambda x: x.value(), getattr(process, 'patJets%s' % postfix).discriminatorSources)
+            )
+    
+    process.patJetGenJetMatchPuppi.matched = 'slimmedGenJets' + postfix
+    
+    process.patJetsPuppi.userData.userFloats.src = cms.VInputTag(cms.InputTag(""))
+    process.patJetsPuppi.jetChargeSource = cms.InputTag("patJetPuppiCharge")
+
+    process.selectedPatJetsPuppi.cut = cms.string("pt > 10")
+
     # FIXME: Use AK8 corrections when available
     # FIXME: Turn on Type-I?
     if not runOnMC:
@@ -370,7 +404,6 @@ def setupJets(process, postfix, runOnMC):
     else:
         jetCorrections = ('AK7PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
 
-    from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection
     addJetCollection(process,
             labelName = 'AK8',
             jetSource = cms.InputTag('ak8PFJetsCHS'),
@@ -405,13 +438,19 @@ def setupJets(process, postfix, runOnMC):
     applyPostfix(process, 'slimmedJets', postfix).src = cms.InputTag('selectedPatJets%s' % postfix)
     applyPostfix(process, 'slimmedJets', postfix).packedPFCandidates = cms.InputTag('packedPFCandidates%s' % postfix)
 
+    process.slimmedJetsPuppi = getattr(process, 'slimmedJets%s' % postfix).clone()
+    process.slimmedJetsPuppi.src = cms.InputTag("selectedPatJetsPuppi") 
+    process.slimmedJetsPuppi.packedPFCandidates = cms.InputTag("packedPFCandidates%s" % postfix)
+
     applyPostfix(process, 'slimmedJetsAK8', postfix).src = cms.InputTag('selectedPatJetsAK8%s' % postfix)
     applyPostfix(process, 'slimmedJetsAK8', postfix).packedPFCandidates = cms.InputTag('packedPFCandidates%s' % postfix)
 
     process.out.outputCommands += [
             'drop *_selectedPatJets%s_*_*' % postfix,
             'drop *_selectedPatJetsAK8%s_*_*' % postfix,
+            'drop *_selectedPatJetsPuppi_*_*',
             'keep *_slimmedJets%s_*_*' % postfix,
+            'keep *_slimmedJetsPuppi_*_*',
             'keep *_slimmedJetsAK8%s_*_*' % postfix
             ]
 
