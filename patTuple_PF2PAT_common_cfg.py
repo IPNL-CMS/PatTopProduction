@@ -29,10 +29,10 @@ def createPATProcess(runOnMC, globalTag):
     process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
     ## Geometry and Detector Conditions (needed for a few patTuple production steps)
-    process.load("Configuration.Geometry.GeometryIdeal_cff")
-    process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-    process.GlobalTag.globaltag = cms.string("%s::All" % globalTag)
-    process.load("Configuration.StandardSequences.MagneticField_cff")
+    process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+    process.load('Configuration.StandardSequences.MagneticField_38T_cff')
+    process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
+    process.GlobalTag.globaltag = cms.string("%s" % globalTag)
 
     from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
     process.out = cms.OutputModule("PoolOutputModule",
@@ -135,6 +135,8 @@ def setupMisc(process, postfix):
     import FWCore.ParameterSet.Config as cms
     from PhysicsTools.PatAlgos.tools.helpers import loadWithPostfix, applyPostfix
 
+    process.load('CommonTools.PileupAlgos.Puppi_cff')
+
     # Create packed PF candidates
     loadWithPostfix(process, 'PhysicsTools.PatAlgos.slimming.packedPFCandidates_cfi', postfix)
     applyPostfix(process, 'packedPFCandidates', postfix).inputCollectionFromPVLoose = cms.InputTag("pfNoPileUpJME%s" % postfix)
@@ -151,8 +153,16 @@ def setupMisc(process, postfix):
 
     # Replace 'offlinePrimaryVertices' by the slimmed version of miniAOD
     process.load('PhysicsTools.PatAlgos.slimming.offlineSlimmedPrimaryVertices_cfi')
+    process.load('PhysicsTools.PatAlgos.slimming.primaryVertexAssociation_cfi')
+
+    process.goodPrimaryVertexAssociation = process.primaryVertexAssociation.clone(
+            vertices = cms.InputTag('goodOfflinePrimaryVertices%s' % postfix),
+            jets = cms.InputTag('pfNoTauClonesPFBRECO%s' % postfix)
+            )
+    process.primaryVertexAssociation.jets = cms.InputTag('pfNoTauClonesPFBRECO%s' % postfix)
     setattr(process, 'goodOfflineSlimmedPrimaryVertices%s' % postfix,
             process.offlineSlimmedPrimaryVertices.clone(
+                score = cms.InputTag("goodPrimaryVertexAssociation", "original"),
                 src = cms.InputTag('goodOfflinePrimaryVertices%s' % postfix)
                 )
             )
@@ -181,7 +191,6 @@ def setupElectrons(process, postfix):
     Setup electrons into process
     """
     import FWCore.ParameterSet.Config as cms
-    from PhysicsTools.PatAlgos.tools.pfTools import adaptPFIsoElectrons
     from PhysicsTools.PatAlgos.tools.helpers import loadWithPostfix, applyPostfix
 
     # FIXME: Review electron isolation. For the moment, it's a basic isolation without effective areas. Still needed for 13 TeV?
@@ -192,7 +201,6 @@ def setupElectrons(process, postfix):
     # FIXME: Check if gsfElectron isolation is computed with a cone size of 0.3
     # Switch to isolation of 0.1
     getattr(process, "pfIsolatedElectrons%s" % postfix).cut = "pt > 5 & gsfElectronRef.isAvailable() & gsfTrackRef.hitPattern().numberOfLostHits(\'MISSING_INNER_HITS\') < 2 & (gsfElectronRef.pfIsolationVariables().sumChargedHadronPt + gsfElectronRef.pfIsolationVariables().sumNeutralHadronEt + gsfElectronRef.pfIsolationVariables().sumPhotonEt) < 0.1 * pt"
-    adaptPFIsoElectrons(process, getattr(process, "patElectrons%s" % postfix), postfix, "03")
 
     # FIXME: Add MVA isolation to electrons
 
@@ -217,19 +225,20 @@ def setupElectrons(process, postfix):
             eidRobustHighEnergy = cms.InputTag("reducedEgamma", "eidRobustHighEnergy"),
         )
 
-    applyPostfix(process, 'elPFIsoDepositCharged', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
-    applyPostfix(process, 'elPFIsoDepositChargedAll', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
-    applyPostfix(process, 'elPFIsoDepositNeutral', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
-    applyPostfix(process, 'elPFIsoDepositGamma', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
-    applyPostfix(process, 'elPFIsoDepositPU', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
+
+    applyPostfix(process, 'elPFIsoDepositChargedPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
+    applyPostfix(process, 'elPFIsoDepositChargedAllPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
+    applyPostfix(process, 'elPFIsoDepositNeutralPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
+    applyPostfix(process, 'elPFIsoDepositGammaPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
+    applyPostfix(process, 'elPFIsoDepositPUPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
 
     # Add new electron collection without isolation cut; use already existing 'pfElectrons' collection, which has the following cuts:
     #  pt > 5 & gsfElectronRef.isAvailable() & gsfTrackRef.hitPattern().numberOfLostHits(\'MISSING_INNER_HITS\')<2
-    getattr(process, 'pfElectrons%s' % postfix).cut = " pt > 5 & gsfElectronRef.isAvailable() & gsfTrackRef.hitPattern().numberOfLostHits(\'MISSING_INNER_HITS\')<2"
+    getattr(process, 'pfElectronsPFBRECO%s' % postfix).cut = " pt > 5 & gsfElectronRef.isAvailable() & gsfTrackRef.hitPattern().numberOfLostHits(\'MISSING_INNER_HITS\')<2"
 
     setattr(process, 'patAllElectrons%s' % postfix,
             getattr(process, 'patElectrons%s' % postfix).clone(
-                pfElectronSource = cms.InputTag('pfElectrons%s' % postfix)
+                pfElectronSource = cms.InputTag('pfElectronsPFBRECO%s' % postfix)
                 )
             )
 
@@ -282,19 +291,19 @@ def setupMuons(process, postfix):
 
     # Add new muon collection without isolation cut; use already existing 'pfMuons' collection, which has the following cuts:
     # pt > 5 & muonRef.isAvailable()
-    getattr(process, 'pfMuons%s' % postfix).cut = "pt > 5 & muonRef.isAvailable()"
+    getattr(process, 'pfMuonsPFBRECO%s' % postfix).cut = "pt > 5 & muonRef.isAvailable()"
 
     # Clone 'muonMatch' collection to operate on 'pfMuons'
     setattr(process, 'allMuonMatch%s' % postfix,
             getattr(process, 'muonMatch%s' % postfix).clone(
-                src = cms.InputTag('pfMuons%s' % postfix)
+                src = cms.InputTag('pfMuonsPFBRECO%s' % postfix)
                 )
             )
 
     setattr(process, 'patAllMuons%s' % postfix,
             getattr(process, 'patMuons%s' % postfix).clone(
                 genParticleMatch = cms.InputTag('allMuonMatch%s' % postfix),
-                pfMuonSource = cms.InputTag('pfMuons%s' % postfix)
+                pfMuonSource = cms.InputTag('pfMuonsPFBRECO%s' % postfix)
                 )
             )
 
@@ -360,21 +369,23 @@ def setupJets(process, postfix, runOnMC):
     applyPostfix(process, 'selectedPatJetsAK8', postfix).cut = cms.string("pt > 100")
     applyPostfix(process, 'patJetGenJetMatchAK8', postfix).matched = 'slimmedGenJets%s' % postfix
     applyPostfix(process, 'slimmedGenJets', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
+    applyPostfix(process, 'slimmedGenJetsAK8', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
 
     # Groom mass
-    from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHSPruned, ak8PFJetsCHSFiltered, ak8PFJetsCHSTrimmed
+    from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHSPruned, ak8PFJetsCHSSoftDrop, ak8PFJetsCHSFiltered, ak8PFJetsCHSTrimmed
     process.ak8PFJetsCHSPruned   = ak8PFJetsCHSPruned.clone(src = cms.InputTag('pfNoPileUpJME%s' % postfix))
+    process.ak8PFJetsCHSSoftDrop = ak8PFJetsCHSSoftDrop.clone(src = cms.InputTag('pfNoPileUpJME%s' % postfix))
     process.ak8PFJetsCHSTrimmed  = ak8PFJetsCHSTrimmed.clone(src = cms.InputTag('pfNoPileUpJME%s' % postfix))
     process.ak8PFJetsCHSFiltered = ak8PFJetsCHSFiltered.clone(src = cms.InputTag('pfNoPileUpJME%s' % postfix))
 
     process.load("RecoJets.JetProducers.ak8PFJetsCHS_groomingValueMaps_cfi")
-    applyPostfix(process, 'patJetsAK8', postfix).userData.userFloats.src += ['ak8PFJetsCHSPrunedLinks', 'ak8PFJetsCHSTrimmedLinks', 'ak8PFJetsCHSFilteredLinks']
+    applyPostfix(process, 'patJetsAK8', postfix).userData.userFloats.src += ['ak8PFJetsCHSPrunedMass', 'ak8PFJetsCHSSoftDropMass', 'ak8PFJetsCHSTrimmedMass', 'ak8PFJetsCHSFilteredMass']
 
     # CMS Top tagger
-    process.cmsTopTagPFJetsCHSLinksAK8 = process.ak8PFJetsCHSPrunedLinks.clone()
-    process.cmsTopTagPFJetsCHSLinksAK8.src = cms.InputTag("ak8PFJetsCHS")
-    process.cmsTopTagPFJetsCHSLinksAK8.matched = cms.InputTag("cmsTopTagPFJetsCHS")
-    applyPostfix(process, 'patJetsAK8', postfix).userData.userFloats.src += ['cmsTopTagPFJetsCHSLinksAK8']
+    process.cmsTopTagPFJetsCHSMassAK8 = process.ak8PFJetsCHSPrunedMass.clone()
+    process.cmsTopTagPFJetsCHSMassAK8.src = cms.InputTag("ak8PFJetsCHS")
+    process.cmsTopTagPFJetsCHSMassAK8.matched = cms.InputTag("cmsTopTagPFJetsCHS")
+    applyPostfix(process, 'patJetsAK8', postfix).userData.userFloats.src += ['cmsTopTagPFJetsCHSMassAK8']
 
     loadWithPostfix(process, 'PhysicsTools.PatAlgos.slimming.slimmedJets_cfi', postfix)
     applyPostfix(process, 'slimmedJets', postfix).src = cms.InputTag('selectedPatJets%s' % postfix)
@@ -429,11 +440,11 @@ def setupPhotons(process, postfix):
             PhotonCutBasedIDTight = cms.InputTag('reducedEgamma', 'PhotonCutBasedIDTight')
             )
 
-    applyPostfix(process, 'phPFIsoDepositCharged', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
-    applyPostfix(process, 'phPFIsoDepositChargedAll', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
-    applyPostfix(process, 'phPFIsoDepositNeutral', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
-    applyPostfix(process, 'phPFIsoDepositGamma', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
-    applyPostfix(process, 'phPFIsoDepositPU', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    applyPostfix(process, 'phPFIsoDepositChargedPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    applyPostfix(process, 'phPFIsoDepositChargedAllPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    applyPostfix(process, 'phPFIsoDepositNeutralPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    applyPostfix(process, 'phPFIsoDepositGammaPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    applyPostfix(process, 'phPFIsoDepositPUPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
 
     loadWithPostfix(process, 'PhysicsTools.PatAlgos.slimming.slimmedPhotons_cfi', postfix)
     applyPostfix(process, 'slimmedPhotons', postfix).src = cms.InputTag("selectedPatPhotons%s" % postfix)

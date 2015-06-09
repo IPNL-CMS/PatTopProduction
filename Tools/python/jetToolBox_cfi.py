@@ -11,8 +11,8 @@ def jetToolBox(process, postfix):
     loadWithPostfix(process, 'RecoJets.JetProducers.pileupjetidproducer_cfi', postfix)
 
     # Customize to run on collections produced by PF2PAT
-    applyPostfix(process, "pileupJetIdEvaluator", postfix).jets = cms.InputTag("pfNoTauClonesPFlow")
-    applyPostfix(process, "pileupJetIdCalculator", postfix).jets = cms.InputTag("pfNoTauClonesPFlow")
+    applyPostfix(process, "pileupJetIdEvaluator", postfix).jets = cms.InputTag("pfNoTauClonesPFBRECO%s" % postfix)
+    applyPostfix(process, "pileupJetIdCalculator", postfix).jets = cms.InputTag("pfNoTauClonesPFBRECO%s" % postfix)
     applyPostfix(process, "pileupJetIdEvaluator", postfix).rho = cms.InputTag("fixedGridRhoFastjetAll")
     applyPostfix(process, "pileupJetIdCalculator", postfix).rho = cms.InputTag("fixedGridRhoFastjetAll")
 
@@ -25,10 +25,9 @@ def jetToolBox(process, postfix):
 
     # Quark / gluon tagger
     loadWithPostfix(process, 'RecoJets.JetProducers.QGTagger_cfi', postfix)
-    delattr(process, "QGTaggerMiniAOD" + postfix)
 
     # Customize to run on collections produced by PF2PAT
-    applyPostfix(process, "QGTagger", postfix).srcJets = cms.InputTag("pfNoTauClonesPFlow")
+    applyPostfix(process, "QGTagger", postfix).srcJets = cms.InputTag("pfNoTauClonesPFBRECO%s" % postfix)
 
     applyPostfix(process, "QGTagger", postfix).jetsLabel = cms.string('QGL_AK4PFchs')
 
