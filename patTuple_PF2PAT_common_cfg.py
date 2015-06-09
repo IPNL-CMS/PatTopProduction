@@ -232,6 +232,20 @@ def setupElectrons(process, postfix):
     applyPostfix(process, 'elPFIsoDepositGammaPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
     applyPostfix(process, 'elPFIsoDepositPUPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
 
+    #VID Electron IDs
+    from PhysicsTools.SelectorUtils.tools.vid_id_tools import switchOnVIDElectronIdProducer, setupAllVIDIdsInModule, setupVIDElectronSelection, DataFormat
+    electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff',
+            'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
+
+    switchOnVIDElectronIdProducer(process, DataFormat.AOD)
+    process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag("reducedEgamma","reducedGedGsfElectrons")
+    process.electronIDValueMapProducer.src = cms.InputTag("reducedEgamma","reducedGedGsfElectrons")
+    process.electronIDValueMapProducer.ebReducedRecHitCollection = cms.InputTag("reducedEgamma","reducedEBRecHits")
+    process.electronIDValueMapProducer.eeReducedRecHitCollection = cms.InputTag("reducedEgamma","reducedEERecHits")
+    process.electronIDValueMapProducer.esReducedRecHitCollection = cms.InputTag("reducedEgamma","reducedESRecHits")
+    for idmod in electron_ids:
+        setupAllVIDIdsInModule(process, idmod, setupVIDElectronSelection, patProducer=getattr(process, 'patElectrons%s' % postfix))
+
     # Add new electron collection without isolation cut; use already existing 'pfElectrons' collection, which has the following cuts:
     #  pt > 5 & gsfElectronRef.isAvailable() & gsfTrackRef.hitPattern().numberOfLostHits(\'MISSING_INNER_HITS\')<2
     getattr(process, 'pfElectronsPFBRECO%s' % postfix).cut = " pt > 5 & gsfElectronRef.isAvailable() & gsfTrackRef.hitPattern().numberOfLostHits(\'MISSING_INNER_HITS\')<2"
