@@ -85,6 +85,7 @@ def createPATProcess(runOnMC, globalTag):
     setupElectrons(process, postfix)
     setupMuons(process, postfix)
     setupJets(process, postfix, runOnMC)
+    setupMETs(process, postfix)
     setupTaus(process, postfix)
     setupPhotons(process, postfix)
 
@@ -118,7 +119,6 @@ def createPATProcess(runOnMC, globalTag):
             'keep *_goodOfflineSlimmedPrimaryVertices*_*_*',
             'keep PileupSummaryInfos_*_*_*',
             'keep double_fixedGridRho*_*_*',
-            'keep *_patPFMet*_*_PAT', # Keep raw met
             'keep *_offlineBeamSpot*_*_*'
             ]
 
@@ -214,6 +214,9 @@ def setupElectrons(process, postfix):
     applyPostfix(process, 'patElectrons', postfix).embedPflowBasicClusters        = False  ## process.patElectrons.embed in AOD externally stored the electron's pflow basic clusters
     applyPostfix(process, 'patElectrons', postfix).embedPflowPreshowerClusters    = False  ## process.patElectrons.embed in AOD externally stored the electron's pflow preshower clusters
     applyPostfix(process, 'patElectrons', postfix).embedRecHits         = False  ## process.patElectrons.embed in AOD externally stored the RecHits - can be called from the PATElectronProducer
+    applyPostfix(process, 'patElectrons', postfix).addPFClusterIso = cms.bool(True)
+    applyPostfix(process, 'patElectrons', postfix).ecalPFClusterIsoMap = cms.InputTag("reducedEgamma", "eleEcalPFClusIso")
+    applyPostfix(process, 'patElectrons', postfix).hcalPFClusterIsoMap = cms.InputTag("reducedEgamma", "eleHcalPFClusIso")
     applyPostfix(process, 'patElectrons', postfix).electronSource = cms.InputTag("reducedEgamma", "reducedGedGsfElectrons")
     applyPostfix(process, 'patElectrons', postfix).electronIDSources = cms.PSet(
             # configure many IDs as InputTag <someName> = <someTag> you
@@ -453,6 +456,48 @@ def setupJets(process, postfix, runOnMC):
             ]
 
 
+def setupMETs(process, postfix):
+    # PUPPI MET
+    import FWCore.ParameterSet.Config as cms
+
+    process.load('JetMETCorrections.Configuration.JetCorrectors_cff')
+
+    process.pfMetPuppi = getattr(process, 'pfMETPFBRECO%s' % postfix).clone()
+    process.pfMetPuppi.src = cms.InputTag("puppi")
+    process.pfMetPuppi.alias = cms.string('pfMetPuppi')
+
+    ## Type 1 corrections
+    from JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff import corrPfMetType1
+    from JetMETCorrections.Type1MET.correctedMet_cff import pfMetT1
+    process.corrPfMetType1Puppi = corrPfMetType1.clone(
+        src = 'ak4PFJetsPuppi',
+        jetCorrLabel = 'ak4PFCHSL2L3Corrector',
+    )
+    del process.corrPfMetType1Puppi.offsetCorrLabel # no L1 for PUPPI jets
+    process.pfMetT1Puppi = pfMetT1.clone(
+        src = 'pfMetPuppi',
+        srcCorrections = [ cms.InputTag("corrPfMetType1Puppi", "type1") ]
+    )
+
+    from PhysicsTools.PatAlgos.tools.metTools import addMETCollection
+    addMETCollection(process, labelName='patMETsPuppi',   metSource='pfMetT1Puppi') # Puppi T1
+    addMETCollection(process, labelName='patPFMetPuppi', metSource='pfMetPuppi')   # Puppi RAW
+    addMETCollection(process, labelName='patPFMet%s' % postfix, metSource='pfMETPFBRECO%s' % postfix)   # Puppi RAW
+
+    process.load('PhysicsTools.PatAlgos.slimming.slimmedMETs_cfi')
+    process.slimmedMETs.src = cms.InputTag("patMETs%s" % postfix)
+    process.slimmedMETs.rawUncertainties = cms.InputTag("patPFMet%s" % postfix)
+    del process.slimmedMETs.caloMET # not available
+    del process.slimmedMETs.type1Uncertainties # not available
+    del process.slimmedMETs.type1p2Uncertainties # not available
+
+    process.slimmedMETsPuppi = process.slimmedMETs.clone()
+    process.slimmedMETsPuppi.src = cms.InputTag("patMETsPuppi")
+    process.slimmedMETsPuppi.rawUncertainties   = cms.InputTag("patPFMetPuppi") # only central value
+
+    process.out.outputCommands += [
+            'keep *_slimmedMETs*_*_*',
+            ]
 
 def setupTaus(process, postfix):
     """
@@ -485,6 +530,9 @@ def setupPhotons(process, postfix):
     applyPostfix(process, 'patPhotons', postfix).embedBasicClusters = False  ## process.patPhotons.embed in AOD externally stored the photon's basic clusters
     applyPostfix(process, 'patPhotons', postfix).embedPreshowerClusters = False  ## process.patPhotons.embed in AOD externally stored the photon's preshower clusters
     applyPostfix(process, 'patPhotons', postfix).embedRecHits = False  ## process.patPhotons.embed in AOD externally stored the RecHits - can be called from the PATPhotonProducer
+    applyPostfix(process, 'patPhotons', postfix).addPFClusterIso = cms.bool(True)
+    applyPostfix(process, 'patPhotons', postfix).ecalPFClusterIsoMap = cms.InputTag("reducedEgamma", "phoEcalPFClusIso")
+    applyPostfix(process, 'patPhotons', postfix).hcalPFClusterIsoMap = cms.InputTag("reducedEgamma", "phoHcalPFClusIso")
     applyPostfix(process, 'patPhotons', postfix).photonSource = cms.InputTag("reducedEgamma", "reducedGedPhotons")
     applyPostfix(process, 'patPhotons', postfix).photonIDSources = cms.PSet(
             PhotonCutBasedIDLoose = cms.InputTag('reducedEgamma', 'PhotonCutBasedIDLoose'),
@@ -496,6 +544,21 @@ def setupPhotons(process, postfix):
     applyPostfix(process, 'phPFIsoDepositNeutralPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
     applyPostfix(process, 'phPFIsoDepositGammaPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
     applyPostfix(process, 'phPFIsoDepositPUPAT', postfix).src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+
+    # VID Photon IDs - crash for unknown reasons
+    #from PhysicsTools.SelectorUtils.tools.vid_id_tools import switchOnVIDPhotonIdProducer, setupAllVIDIdsInModule, setupVIDPhotonSelection, DataFormat
+    #photon_ids = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_PHYS14_PU20bx25_V2_cff']
+
+    #switchOnVIDPhotonIdProducer(process, DataFormat.AOD)
+    #process.egmPhotonIDs.physicsObjectSrc = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    #process.photonIDValueMapProducer.src = cms.InputTag("reducedEgamma", "reducedGedPhotons")
+    #process.photonIDValueMapProducer.pfCandidates = cms.InputTag("packedPFCandidates%s" % postfix)
+    #process.photonIDValueMapProducer.particleBasedIsolation = cms.InputTag("reducedEgamma", "reducedPhotonPfCandMap")
+    #process.photonIDValueMapProducer.ebReducedRecHitCollection = cms.InputTag("reducedEgamma", "reducedEBRecHits")
+    #process.photonIDValueMapProducer.eeReducedRecHitCollection = cms.InputTag("reducedEgamma", "reducedEERecHits")
+    #process.photonIDValueMapProducer.esReducedRecHitCollection = cms.InputTag("reducedEgamma", "reducedESRecHits")
+    #for idmod in photon_ids:
+        #setupAllVIDIdsInModule(process, idmod, setupVIDPhotonSelection, patProducer=getattr(process, 'patPhotons%s' % postfix))
 
     loadWithPostfix(process, 'PhysicsTools.PatAlgos.slimming.slimmedPhotons_cfi', postfix)
     applyPostfix(process, 'slimmedPhotons', postfix).src = cms.InputTag("selectedPatPhotons%s" % postfix)
