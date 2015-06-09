@@ -397,12 +397,10 @@ def setupJets(process, postfix, runOnMC):
 
     process.selectedPatJetsPuppi.cut = cms.string("pt > 10")
 
-    # FIXME: Use AK8 corrections when available
-    # FIXME: Turn on Type-I?
     if not runOnMC:
-        jetCorrections = ('AK7PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual'], 'None')
+        jetCorrections = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual'], 'None')
     else:
-        jetCorrections = ('AK7PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
+        jetCorrections = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
 
     addJetCollection(process,
             labelName = 'AK8',
