@@ -72,7 +72,7 @@ def createPATProcess(runOnMC, globalTag):
     getattr(process, "patJetCorrFactors%s" % postfix).payload = 'AK4PFchs'
 
     if not runOnMC:
-        removeMCMatchingPF2PAT(process, ['All'])
+        removeMCMatchingPF2PAT(process, postfix)
 
 
     # FIXME: Add phi modulation corrections for MET
@@ -415,9 +415,10 @@ def setupJets(process, postfix, runOnMC):
 
     applyPostfix(process, 'patJetsAK8', postfix).userData.userFloats.src = [] # start with empty list of user floats
     applyPostfix(process, 'selectedPatJetsAK8', postfix).cut = cms.string("pt > 100")
-    applyPostfix(process, 'patJetGenJetMatchAK8', postfix).matched = 'slimmedGenJets%s' % postfix
-    applyPostfix(process, 'slimmedGenJets', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
-    applyPostfix(process, 'slimmedGenJetsAK8', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
+    if runOnMC:
+        applyPostfix(process, 'patJetGenJetMatchAK8', postfix).matched = 'slimmedGenJets%s' % postfix
+        applyPostfix(process, 'slimmedGenJets', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
+        applyPostfix(process, 'slimmedGenJetsAK8', postfix).packedGenParticles = 'packedGenParticles%s' % postfix
 
     # Groom mass
     from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHSPruned, ak8PFJetsCHSSoftDrop, ak8PFJetsCHSFiltered, ak8PFJetsCHSTrimmed
@@ -483,6 +484,9 @@ def setupMETs(process, postfix):
     addMETCollection(process, labelName='patMETsPuppi',   metSource='pfMetT1Puppi') # Puppi T1
     addMETCollection(process, labelName='patPFMetPuppi', metSource='pfMetPuppi')   # Puppi RAW
     addMETCollection(process, labelName='patPFMet%s' % postfix, metSource='pfMETPFBRECO%s' % postfix)   # Puppi RAW
+    process.patMETsPuppi.addGenMET = cms.bool(False)
+    process.patPFMetPuppi.addGenMET = cms.bool(False)
+    getattr(process, 'patMETs%s' %postfix).addGenMET = False
 
     process.load('PhysicsTools.PatAlgos.slimming.slimmedMETs_cfi')
     process.slimmedMETs.src = cms.InputTag("patMETs%s" % postfix)
@@ -490,6 +494,7 @@ def setupMETs(process, postfix):
     del process.slimmedMETs.caloMET # not available
     del process.slimmedMETs.type1Uncertainties # not available
     del process.slimmedMETs.type1p2Uncertainties # not available
+    getattr(process, 'patPFMet%s' %postfix).addGenMET = False
 
     process.slimmedMETsPuppi = process.slimmedMETs.clone()
     process.slimmedMETsPuppi.src = cms.InputTag("patMETsPuppi")
@@ -604,6 +609,10 @@ def setupForMC(process, postfix):
     applyPostfix(process, 'patJets', postfix).embedGenPartonMatch = False
     #also jet flavour must be switched to ak4
     applyPostfix(process, 'patJetFlavourAssociation', postfix).rParam = 0.4
+    process.patMETsPuppi.addGenMET = cms.bool(True)
+    process.patPFMetPuppi.addGenMET = cms.bool(True)
+    getattr(process, 'patMETs%s' %postfix).addGenMET = True
+    getattr(process, 'patPFMet%s' %postfix).addGenMET = True
 
     process.out.outputCommands += [
             'keep *_slimmedGenJets*_*_*',
