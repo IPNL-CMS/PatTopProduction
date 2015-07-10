@@ -110,6 +110,9 @@ def createPATProcess(runOnMC, globalTag):
             'drop *_particleFlow_*_*',
             'drop *_selectedPatPFParticles*_*_*',
             'keep patPackedCandidates_packedPFCandidates*_*_*',
+            
+            # Keep generator info
+            'keep GenEventInfoProduct_generator_*_*',
 
             # Trigger
             'keep *_selectedPatTrigger*_*_PAT',
